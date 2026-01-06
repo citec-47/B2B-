@@ -49,19 +49,6 @@ const connectDatabase = async () => {
     return true;
   } catch (error) {
     console.error('❌ MongoDB Connection Failed:', error.message);
-    
-    // Specific error handling
-    if (error.message.includes('Authentication failed')) {
-      console.log('\n🔑 AUTHENTICATION FAILED!');
-      console.log('1. Check your MongoDB Atlas username/password');
-      console.log('2. Go to MongoDB Atlas → Database Access');
-      console.log('3. Click "Edit" on your user');
-      console.log('4. Regenerate password if needed');
-    } else if (error.message.includes('ENOTFOUND')) {
-      console.log('\n🌐 NETWORK ERROR!');
-      console.log('Check your internet connection');
-    }
-    
     return false;
   }
 };
@@ -72,7 +59,6 @@ const connectDatabase = async () => {
   
   if (!dbConnected) {
     console.log('⚠️  Server will run with limited functionality');
-    console.log('💡 API endpoints will work but data won\'t persist');
   }
 })();
 
@@ -94,7 +80,6 @@ const transporter = nodemailer.createTransport({
 transporter.verify((error, success) => {
   if (error) {
     console.log('⚠️  Email server not configured properly:', error.message);
-    console.log('💡 Emails will not be sent. User activation will work via token.');
   } else {
     console.log('✅ Email server is ready to send messages');
   }
@@ -138,16 +123,8 @@ const ShopSchema = new mongoose.Schema({
   category: { type: String, default: '' },
   totalProducts: { type: Number, default: 0 },
   withdrawMethod: { 
-    type: {
-      type: String,
-      enum: ['bank', 'binance', 'paypal'],
-      required: false
-    },
-    bankName: String,
-    bankAccountNumber: String,
-    bankHolderName: String,
-    binanceWalletAddress: String,
-    paypalEmail: String
+    type: Object,
+    default: null
   },
   transections: { type: Array, default: [] },
   createdAt: { type: Date, default: Date.now },
@@ -267,8 +244,8 @@ app.use(cors({
 
 app.options('*', cors());
 
-app.use(express.json({ limit: process.env.UPLOAD_LIMIT || '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: process.env.UPLOAD_LIMIT || '50mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
 // Create uploads directory
@@ -281,10 +258,7 @@ app.use('/uploads', express.static(uploadsDir));
 
 // Request logging middleware
 app.use((req, res, next) => {
-  const timestamp = new Date().toLocaleTimeString();
-  if (process.env.DEBUG === 'true') {
-    console.log(`\n📥 [${timestamp}] ${req.method} ${req.path}`);
-  }
+  console.log(`\n📥 ${req.method} ${req.path}`);
   next();
 });
 
@@ -314,43 +288,28 @@ const isAuthenticated = async (req, res, next) => {
       });
     }
     
-    // Try user token first
-    try {
-      const decoded = jwt.verify(token, process.env.USER_JWT_SECRET || process.env.JWT_SECRET_KEY);
-      if (decoded.type === 'user') {
-        const user = await User.findById(decoded.id);
-        if (!user) {
-          return res.status(401).json({
-            success: false,
-            message: 'User not found'
-          });
-        }
-        req.user = user;
-        return next();
-      }
-    } catch (userError) {
-      // Not a user token, try shop token
-    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
     
-    // Try shop token
-    try {
-      const decoded = jwt.verify(token, process.env.SHOP_JWT_SECRET || process.env.JWT_SECRET_KEY);
-      if (decoded.type === 'shop') {
-        const shop = await Shop.findById(decoded.id);
-        if (!shop) {
-          return res.status(401).json({
-            success: false,
-            message: 'Shop not found'
-          });
-        }
-        req.seller = shop;
-        return next();
+    if (decoded.type === 'user') {
+      const user = await User.findById(decoded.id);
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'User not found'
+        });
       }
-    } catch (shopError) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid or expired token'
-      });
+      req.user = user;
+      return next();
+    } else if (decoded.type === 'shop') {
+      const shop = await Shop.findById(decoded.id);
+      if (!shop) {
+        return res.status(401).json({
+          success: false,
+          message: 'Shop not found'
+        });
+      }
+      req.seller = shop;
+      return next();
     }
     
     return res.status(401).json({
@@ -406,7 +365,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -415,7 +374,7 @@ const upload = multer({
     if (mimetype && extname) {
       return cb(null, true);
     } else {
-      cb(new Error('Only images are allowed (jpeg, jpg, png, gif, webp)'));
+      cb(new Error('Only images are allowed'));
     }
   }
 });
@@ -439,8 +398,7 @@ app.get('/api/v2/db/status', (req, res) => {
     database: {
       connected: dbConnected,
       name: mongoose.connection.name,
-      host: mongoose.connection.host,
-      models: ['User', 'Shop', 'Product', 'Order', 'Event', 'Withdraw']
+      host: mongoose.connection.host
     }
   });
 });
@@ -457,7 +415,6 @@ app.post('/api/v2/setup/admin', catchAsyncErrors(async (req, res) => {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@ecommerce.com';
   const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
   
-  // Check if admin already exists
   const existingAdmin = await User.findOne({ email: adminEmail });
   if (existingAdmin) {
     return res.json({
@@ -467,14 +424,14 @@ app.post('/api/v2/setup/admin', catchAsyncErrors(async (req, res) => {
     });
   }
   
-  // Create admin user
   const hashedPassword = await bcrypt.hash(adminPassword, 10);
   const adminUser = await User.create({
     name: 'Administrator',
     email: adminEmail,
     password: hashedPassword,
     role: 'admin',
-    isActive: true
+    isActive: true,
+    avatar: 'default-avatar.jpg'
   });
   
   res.json({
@@ -514,18 +471,17 @@ app.post('/api/v2/user/create-user', upload.single('file'), catchAsyncErrors(asy
       return next(new ErrorHandler('User already exists', 400));
     }
     
-    const fileUrl = req.file ? req.file.filename : null;
+    const fileUrl = req.file ? req.file.filename : 'default-avatar.jpg';
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      avatar: fileUrl || 'default-avatar.jpg',
+      avatar: fileUrl,
       isActive: false
     });
     
-    // Create activation token
     const activationToken = jwt.sign(
       { 
         id: user._id, 
@@ -533,25 +489,21 @@ app.post('/api/v2/user/create-user', upload.single('file'), catchAsyncErrors(asy
         name: user.name,
         type: 'user' 
       },
-      process.env.USER_ACTIVATION_SECRET || process.env.JWT_SECRET_KEY,
+      process.env.JWT_SECRET_KEY,
       { expiresIn: '5m' }
     );
     
-    // Try to send activation email
     const activationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/activation/${activationToken}`;
     
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-      await sendMail({
-        email: user.email,
-        subject: 'Activate Your Account',
-        message: `Hello ${name},\n\nPlease click on the link to activate your account:\n\n${activationUrl}\n\nThis link will expire in 5 minutes.\n\nBest regards,\nE-Commerce Team`
-      });
-    }
+    await sendMail({
+      email: user.email,
+      subject: 'Activate Your Account',
+      message: `Hello ${name},\n\nPlease click on the link to activate your account:\n\n${activationUrl}\n\nThis link will expire in 5 minutes.`
+    });
     
     res.status(201).json({
       success: true,
-      message: `User created successfully! ${process.env.EMAIL_USER ? 'Check your email for activation.' : 'Use the activation token below.'}`,
-      activationToken: process.env.EMAIL_USER ? undefined : activationToken,
+      message: 'User created successfully! Check your email for activation.',
       user: {
         id: user._id,
         name: user.name,
@@ -574,10 +526,7 @@ app.post('/api/v2/user/activation', catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHandler('Activation token is required', 400));
     }
     
-    const decoded = jwt.verify(
-      activation_token, 
-      process.env.USER_ACTIVATION_SECRET || process.env.JWT_SECRET_KEY
-    );
+    const decoded = jwt.verify(activation_token, process.env.JWT_SECRET_KEY);
     
     const user = await User.findById(decoded.id);
     if (!user) {
@@ -591,7 +540,6 @@ app.post('/api/v2/user/activation', catchAsyncErrors(async (req, res, next) => {
     user.isActive = true;
     await user.save();
     
-    // Create JWT token
     const token = jwt.sign(
       { 
         id: user._id, 
@@ -599,7 +547,7 @@ app.post('/api/v2/user/activation', catchAsyncErrors(async (req, res, next) => {
         type: 'user',
         role: user.role 
       },
-      process.env.USER_JWT_SECRET || process.env.JWT_SECRET_KEY,
+      process.env.JWT_SECRET_KEY,
       { expiresIn: '7d' }
     );
     
@@ -623,13 +571,7 @@ app.post('/api/v2/user/activation', catchAsyncErrors(async (req, res, next) => {
       token
     });
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      return next(new ErrorHandler('Activation token has expired', 400));
-    }
-    if (error.name === 'JsonWebTokenError') {
-      return next(new ErrorHandler('Invalid activation token', 400));
-    }
-    next(new ErrorHandler(error.message, 500));
+    next(new ErrorHandler(error.message, 400));
   }
 }));
 
@@ -666,7 +608,7 @@ app.post('/api/v2/user/login-user', catchAsyncErrors(async (req, res, next) => {
         type: 'user',
         role: user.role 
       },
-      process.env.USER_JWT_SECRET || process.env.JWT_SECRET_KEY,
+      process.env.JWT_SECRET_KEY,
       { expiresIn: '7d' }
     );
     
@@ -757,7 +699,6 @@ app.post('/api/v2/shop/create-shop', upload.single('file'), catchAsyncErrors(asy
       isActive: false
     });
     
-    // Create activation token
     const activationToken = jwt.sign(
       { 
         id: shop._id, 
@@ -765,25 +706,21 @@ app.post('/api/v2/shop/create-shop', upload.single('file'), catchAsyncErrors(asy
         name: shop.name,
         type: 'shop' 
       },
-      process.env.SHOP_ACTIVATION_SECRET || process.env.JWT_SECRET_KEY,
+      process.env.JWT_SECRET_KEY,
       { expiresIn: '10m' }
     );
     
-    // Try to send activation email
     const activationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/seller/activation/${activationToken}`;
     
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-      await sendMail({
-        email: shop.email,
-        subject: 'Activate Your Shop',
-        message: `Hello ${name},\n\nPlease click on the link to activate your shop:\n\n${activationUrl}\n\nThis link will expire in 10 minutes.\n\nBest regards,\nE-Commerce Team`
-      });
-    }
+    await sendMail({
+      email: shop.email,
+      subject: 'Activate Your Shop',
+      message: `Hello ${name},\n\nPlease click on the link to activate your shop:\n\n${activationUrl}\n\nThis link will expire in 10 minutes.`
+    });
     
     res.status(201).json({
       success: true,
-      message: `Shop created successfully! ${process.env.EMAIL_USER ? 'Check your email for activation.' : 'Use the activation token below.'}`,
-      activationToken: process.env.EMAIL_USER ? undefined : activationToken,
+      message: 'Shop created successfully! Check your email for activation.',
       shop: {
         id: shop._id,
         name: shop.name,
@@ -806,10 +743,7 @@ app.post('/api/v2/shop/activation', catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHandler('Activation token is required', 400));
     }
     
-    const decoded = jwt.verify(
-      activation_token, 
-      process.env.SHOP_ACTIVATION_SECRET || process.env.JWT_SECRET_KEY
-    );
+    const decoded = jwt.verify(activation_token, process.env.JWT_SECRET_KEY);
     
     const shop = await Shop.findById(decoded.id);
     if (!shop) {
@@ -823,7 +757,6 @@ app.post('/api/v2/shop/activation', catchAsyncErrors(async (req, res, next) => {
     shop.isActive = true;
     await shop.save();
     
-    // Create JWT token
     const token = jwt.sign(
       { 
         id: shop._id, 
@@ -831,7 +764,7 @@ app.post('/api/v2/shop/activation', catchAsyncErrors(async (req, res, next) => {
         type: 'shop',
         role: shop.role 
       },
-      process.env.SHOP_JWT_SECRET || process.env.JWT_SECRET_KEY,
+      process.env.JWT_SECRET_KEY,
       { expiresIn: '7d' }
     );
     
@@ -849,13 +782,7 @@ app.post('/api/v2/shop/activation', catchAsyncErrors(async (req, res, next) => {
       token
     });
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      return next(new ErrorHandler('Activation token has expired', 400));
-    }
-    if (error.name === 'JsonWebTokenError') {
-      return next(new ErrorHandler('Invalid activation token', 400));
-    }
-    next(new ErrorHandler(error.message, 500));
+    next(new ErrorHandler(error.message, 400));
   }
 }));
 
@@ -892,7 +819,7 @@ app.post('/api/v2/shop/login-shop', catchAsyncErrors(async (req, res, next) => {
         type: 'shop',
         role: shop.role 
       },
-      process.env.SHOP_JWT_SECRET || process.env.JWT_SECRET_KEY,
+      process.env.JWT_SECRET_KEY,
       { expiresIn: '7d' }
     );
     
@@ -954,10 +881,623 @@ app.get('/api/v2/shop/admin-all-sellers', isAuthenticated, isAdmin, catchAsyncEr
   }
 }));
 
-// PRODUCT ROUTES (Continued in next message due to length limit...)
-// Note: The product routes and remaining code continue similarly with proper error handling
+// PRODUCT ROUTES
+app.post('/api/v2/product/create-product', upload.array('images'), catchAsyncErrors(async (req, res, next) => {
+  try {
+    const shopId = req.body.shopId;
+    const shop = await Shop.findById(shopId);
+    
+    if (!shop) {
+      return next(new ErrorHandler('Shop not found', 400));
+    }
 
-// ... [Product routes continue with the same pattern as above]
+    const files = req.files;
+    if (!files || files.length === 0) {
+      return next(new ErrorHandler('Please upload product images', 400));
+    }
+
+    const imageUrls = files.map((file) => `${file.filename}`);
+
+    const productData = {
+      ...req.body,
+      images: imageUrls,
+      shop: {
+        _id: shop._id,
+        name: shop.name,
+        email: shop.email,
+        avatar: shop.avatar || 'default-shop.jpg'
+      },
+      isImported: false
+    };
+
+    const requiredFields = ['name', 'description', 'category', 'discountPrice', 'stock'];
+    for (const field of requiredFields) {
+      if (!productData[field]) {
+        return next(new ErrorHandler(`Please enter product ${field}`, 400));
+      }
+    }
+
+    const product = await Product.create(productData);
+
+    await Shop.findByIdAndUpdate(shopId, { $inc: { totalProducts: 1 } });
+
+    res.status(201).json({
+      success: true,
+      product,
+      message: 'Product created successfully!'
+    });
+  } catch (error) {
+    next(new ErrorHandler(error.message, 400));
+  }
+}));
+
+// FIXED: Get all products of a shop
+app.get('/api/v2/product/get-all-products-shop/:id', catchAsyncErrors(async (req, res, next) => {
+  try {
+    const shopId = req.params.id;
+    console.log(`[API] Fetching products for shop: ${shopId}`);
+    
+    let products = [];
+    
+    // Try multiple ways to find products
+    products = await Product.find({ shopId: shopId })
+      .sort({ createdAt: -1 })
+      .lean();
+    
+    if (products.length === 0) {
+      products = await Product.find({ 'shop._id': shopId })
+        .sort({ createdAt: -1 })
+        .lean();
+    }
+    
+    console.log(`[API] Found ${products.length} products`);
+    
+    const importedCount = products.filter(p => p.isImported === true).length;
+    const manualCount = products.filter(p => !p.isImported || p.isImported === false).length;
+    const inStockCount = products.filter(p => p.stock > 0).length;
+    const outOfStockCount = products.filter(p => p.stock <= 0).length;
+    
+    res.status(200).json({
+      success: true,
+      products,
+      statistics: {
+        total: products.length,
+        imported: importedCount,
+        manual: manualCount,
+        inStock: inStockCount,
+        outOfStock: outOfStockCount
+      }
+    });
+  } catch (error) {
+    console.error(`[API] Error:`, error);
+    next(new ErrorHandler(error.message, 400));
+  }
+}));
+
+// Get all products (public)
+app.get('/api/v2/product/get-all-products-public', catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20, category, search } = req.query;
+    const skip = (page - 1) * limit;
+    
+    const query = { stock: { $gt: 0 } };
+    if (category && category !== 'All') query.category = category;
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const products = await Product.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+    
+    const total = await Product.countDocuments(query);
+    
+    res.status(200).json({
+      success: true,
+      products: products || [],
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / limit)
+    });
+  } catch (error) {
+    next(new ErrorHandler(error.message, 400));
+  }
+}));
+
+// PRODUCT IMPORT ROUTES
+const generateMockProducts = (count = 100) => {
+  const products = [];
+  const categories = [
+    "Electronics", "Mobile Phones", "Laptops", "Tablets", 
+    "Smart Watches", "Headphones", "Speakers", "Cameras",
+    "Fashion", "Men's Clothing", "Women's Clothing", "Shoes",
+    "Home & Kitchen", "Furniture", "Home Decor", "Kitchen Appliances"
+  ];
+
+  for (let i = 0; i < count; i++) {
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    const costPrice = parseFloat((Math.random() * 500 + 5).toFixed(2));
+    const originalPrice = parseFloat((costPrice * (1.3 + Math.random() * 0.7)).toFixed(2));
+    
+    products.push({
+      externalId: `EXT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${i}`,
+      name: `${category} Product ${i + 1}`,
+      description: `Premium quality ${category.toLowerCase()}. Features include high-end materials and excellent durability.`,
+      category,
+      originalPrice,
+      discountPrice: costPrice,
+      stock: Math.floor(Math.random() * 500) + 10,
+      images: ["default-product.jpg"],
+      externalSource: "MOCK_API",
+      tags: "Best Seller,New Arrival",
+      brand: "Generic",
+      specifications: {
+        brand: "Generic",
+        model: `MOD-${Math.floor(Math.random() * 10000)}`,
+        weight: `${(Math.random() * 5 + 0.1).toFixed(1)}kg`
+      },
+      rating: parseFloat((Math.random() * 2 + 3).toFixed(1)),
+      reviewCount: Math.floor(Math.random() * 1000)
+    });
+  }
+  
+  return products;
+};
+
+// Fetch external products
+app.get('/api/v2/product/fetch-external', isSeller, catchAsyncErrors(async (req, res, next) => {
+  try {
+    const {
+      category = "",
+      search = "",
+      page = 1,
+      limit = 12,
+    } = req.query;
+
+    console.log(`[IMPORT] Fetching external products`);
+
+    let products = generateMockProducts(100);
+    
+    if (search) {
+      const searchLower = search.toLowerCase();
+      products = products.filter(p => 
+        p.name.toLowerCase().includes(searchLower) ||
+        p.description.toLowerCase().includes(searchLower) ||
+        p.category.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    if (category && category !== "All") {
+      products = products.filter(p => p.category === category);
+    }
+    
+    const allCategories = [...new Set(products.map(p => p.category))].sort();
+    
+    const start = (page - 1) * limit;
+    const end = start + parseInt(limit);
+    const paginatedProducts = products.slice(start, end);
+    
+    res.status(200).json({
+      success: true,
+      products: paginatedProducts,
+      total: products.length,
+      page: parseInt(page),
+      pages: Math.ceil(products.length / limit),
+      categories: ["All", ...allCategories]
+    });
+
+  } catch (error) {
+    console.error("[IMPORT] Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch external products",
+      error: error.message,
+    });
+  }
+}));
+
+// Import categories
+app.get('/api/v2/product/import-categories', isSeller, catchAsyncErrors(async (req, res, next) => {
+  try {
+    const categories = [
+      "All",
+      "Electronics",
+      "Mobile Phones", 
+      "Laptops",
+      "Tablets",
+      "Smart Watches",
+      "Headphones",
+      "Speakers",
+      "Cameras",
+      "Fashion",
+      "Men's Clothing",
+      "Women's Clothing",
+      "Shoes",
+      "Home & Kitchen",
+      "Furniture",
+      "Home Decor",
+      "Kitchen Appliances",
+      "Beauty & Health",
+      "Skincare",
+      "Makeup",
+      "Health Supplements"
+    ];
+
+    res.status(200).json({
+      success: true,
+      categories,
+      message: "Import categories fetched successfully"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch categories",
+      error: error.message,
+    });
+  }
+}));
+
+// Bulk import products
+app.post('/api/v2/product/bulk-import-external', isSeller, catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { 
+      products = [], 
+      shopId, 
+      markupPercentage = 30 
+    } = req.body;
+
+    console.log(`[BULK IMPORT] Starting bulk import for shop: ${shopId}`);
+    console.log(`[BULK IMPORT] Received ${products.length} products to import`);
+    
+    if (!products || products.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No products provided for import",
+      });
+    }
+
+    if (!shopId) {
+      return res.status(400).json({
+        success: false,
+        message: "Shop ID is required",
+      });
+    }
+
+    const shop = await Shop.findById(shopId);
+    if (!shop) {
+      console.log(`[BULK IMPORT] Shop not found: ${shopId}`);
+      return res.status(404).json({
+        success: false,
+        message: "Shop not found",
+      });
+    }
+
+    console.log(`[BULK IMPORT] Shop found: ${shop.name}`);
+
+    const importedProducts = [];
+    const failed = [];
+
+    for (let i = 0; i < products.length; i++) {
+      const extProduct = products[i];
+      try {
+        console.log(`[BULK IMPORT ${i + 1}/${products.length}] Processing: ${extProduct.name}`);
+        
+        if (!extProduct.name || !extProduct.category) {
+          throw new Error("Product name and category are required");
+        }
+
+        const costPrice = parseFloat(extProduct.discountPrice || 10);
+        const sellingPrice = parseFloat((costPrice * (1 + (markupPercentage / 100))).toFixed(2));
+        
+        const uniqueId = extProduct.externalId || 
+          `bulk-import-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        const productData = {
+          name: extProduct.name.substring(0, 200),
+          description: extProduct.description || `Imported ${extProduct.name}`,
+          category: extProduct.category,
+          originalPrice: parseFloat(extProduct.originalPrice || (sellingPrice * 1.5)).toFixed(2),
+          discountPrice: sellingPrice,
+          stock: extProduct.stock || 100,
+          images: extProduct.images || ["default-product.jpg"],
+          shopId: shopId,
+          shop: {
+            _id: shop._id,
+            name: shop.name,
+            email: shop.email,
+            avatar: shop.avatar || "default-shop.jpg"
+          },
+          tags: extProduct.tags || "imported",
+          externalId: uniqueId,
+          externalSource: extProduct.externalSource || 'IMPORTED',
+          isImported: true,
+          importData: {
+            originalCost: costPrice,
+            importedAt: new Date(),
+            markupPercentage: markupPercentage,
+            sourceId: extProduct.externalId
+          }
+        };
+
+        console.log(`[BULK IMPORT] Creating product: ${productData.name}`);
+        
+        const product = await Product.create(productData);
+        
+        console.log(`[BULK IMPORT] Created product ID: ${product._id}`);
+        
+        importedProducts.push({
+          id: product._id,
+          name: product.name,
+          price: product.discountPrice,
+          isImported: product.isImported
+        });
+
+      } catch (productError) {
+        console.error(`[BULK IMPORT] Failed to import product ${i + 1}:`, productError.message);
+        
+        failed.push({
+          index: i + 1,
+          name: extProduct.name || `Product ${i + 1}`,
+          error: productError.message
+        });
+      }
+    }
+
+    if (importedProducts.length > 0) {
+      await Shop.findByIdAndUpdate(shopId, {
+        $inc: { totalProducts: importedProducts.length }
+      });
+    }
+
+    console.log(`[BULK IMPORT] Completed. Success: ${importedProducts.length}, Failed: ${failed.length}`);
+
+    res.status(201).json({
+      success: true,
+      message: `Bulk import completed! ${importedProducts.length} products imported successfully.`,
+      results: {
+        imported: importedProducts.length,
+        failed: failed.length,
+        total: importedProducts.length + failed.length,
+        importedProducts: importedProducts,
+        failedProducts: failed
+      }
+    });
+
+  } catch (error) {
+    console.error("[BULK IMPORT] Critical error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to import products",
+      error: error.message
+    });
+  }
+}));
+
+// ORDER ROUTES
+app.post('/api/v2/order/create-order', catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
+
+    const shopItemsMap = new Map();
+
+    for (const item of cart) {
+      const shopId = item.shopId;
+      if (!shopItemsMap.has(shopId)) {
+        shopItemsMap.set(shopId, []);
+      }
+      shopItemsMap.get(shopId).push(item);
+    }
+
+    const orders = [];
+
+    for (const [shopId, items] of shopItemsMap) {
+      const order = await Order.create({
+        cart: items,
+        shippingAddress,
+        user,
+        totalPrice,
+        paymentInfo,
+      });
+      orders.push(order);
+    }
+
+    res.status(201).json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    next(new ErrorHandler(error.message, 500));
+  }
+}));
+
+app.get('/api/v2/order/get-all-orders/:userId', catchAsyncErrors(async (req, res, next) => {
+  try {
+    const orders = await Order.find({ "user._id": req.params.userId }).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    next(new ErrorHandler(error.message, 500));
+  }
+}));
+
+app.get('/api/v2/order/get-seller-all-orders/:shopId', catchAsyncErrors(async (req, res, next) => {
+  try {
+    const orders = await Order.find({
+      "cart.shopId": req.params.shopId,
+    }).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    next(new ErrorHandler(error.message, 500));
+  }
+}));
+
+// WITHDRAW ROUTES
+app.post('/api/v2/withdraw/create-withdraw-request', isSeller, catchAsyncErrors(async (req, res, next) => {
+  try {
+    const { amount } = req.body;
+
+    console.log("💰 Creating bank withdrawal request...");
+    console.log("Seller ID:", req.seller._id);
+    console.log("Amount:", amount);
+
+    const seller = await Shop.findById(req.seller._id);
+
+    if (!seller) {
+      console.error("❌ Seller not found:", req.seller._id);
+      return next(new ErrorHandler("Seller not found", 404));
+    }
+
+    console.log("✅ Seller found:", seller.name, "Balance:", seller.availableBalance);
+
+    if (!seller.withdrawMethod) {
+      console.error("❌ No withdrawal method set for seller:", seller.name);
+      return next(new ErrorHandler("Please set up your withdrawal method first", 400));
+    }
+
+    console.log("📝 Withdraw method:", seller.withdrawMethod.type);
+
+    if (seller.withdrawMethod.type !== "bank" && seller.withdrawMethod.type !== "binance") {
+      return next(new ErrorHandler("Invalid withdrawal method", 400));
+    }
+
+    if (!amount || amount <= 0) {
+      return next(new ErrorHandler("Please enter a valid amount", 400));
+    }
+
+    if (amount < 50) {
+      return next(new ErrorHandler("Minimum withdrawal amount is $50", 400));
+    }
+
+    if (amount > seller.availableBalance) {
+      console.error(`❌ Insufficient balance: ${amount} > ${seller.availableBalance}`);
+      return next(new ErrorHandler("Insufficient balance", 400));
+    }
+
+    const withdraw = new Withdraw({
+      seller: seller._id,
+      amount,
+      withdrawMethod: seller.withdrawMethod,
+      status: "pending",
+      adminNote: "",
+      processedAt: null
+    });
+
+    await withdraw.save();
+    console.log("✅ Withdrawal request CREATED AND SAVED:", withdraw._id);
+
+    seller.availableBalance -= amount;
+    seller.lockedBalance = (seller.lockedBalance || 0) + amount;
+    
+    seller.transections.push({
+      amount: -amount,
+      status: "Withdraw Requested (Pending)",
+      createdAt: new Date(),
+    });
+
+    await seller.save();
+    console.log("✅ Seller balance updated.");
+
+    await sendMail({
+      email: seller.email,
+      subject: "Withdraw Request Submitted",
+      message: `Hello ${seller.name},\n\nYour withdrawal request of $${amount} has been submitted successfully and is pending admin approval.`
+    });
+
+    if (process.env.ADMIN_EMAIL) {
+      await sendMail({
+        email: process.env.ADMIN_EMAIL,
+        subject: "New Withdrawal Request",
+        message: `New withdrawal request received:\n\nSeller: ${seller.name} (${seller.email})\nAmount: $${amount}\nRequest ID: ${withdraw._id}`
+      });
+    }
+
+    console.log("✅ Emails sent successfully");
+
+    res.status(201).json({
+      success: true,
+      message: "Withdrawal request submitted successfully",
+      withdraw,
+    });
+  } catch (error) {
+    console.error("❌ Create withdrawal error:", error);
+    next(new ErrorHandler(error.message, 500));
+  }
+}));
+
+app.get('/api/v2/withdraw/get-all-withdraw-request', isAuthenticated, isAdmin, catchAsyncErrors(async (req, res, next) => {
+  try {
+    console.log("📋 ADMIN: Fetching all withdrawal requests...");
+    
+    const withdraws = await Withdraw.find()
+      .populate("seller", "name email avatar availableBalance withdrawMethod")
+      .sort({ createdAt: -1 });
+
+    console.log(`✅ Found ${withdraws.length} withdrawal requests`);
+
+    res.status(200).json({
+      success: true,
+      withdraws,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching withdrawals:", error);
+    next(new ErrorHandler(error.message, 500));
+  }
+}));
+
+// PAYMENT ROUTES
+app.post('/api/v2/payment/process', catchAsyncErrors(async (req, res, next) => {
+  const myPayment = await stripe.paymentIntents.create({
+    amount: req.body.amount,
+    currency: "inr",
+    metadata: {
+      company: "E-Commerce",
+    },
+  });
+  res.status(200).json({
+    success: true,
+    client_secret: myPayment.client_secret,
+  });
+}));
+
+app.get('/api/v2/payment/stripeapikey', catchAsyncErrors(async (req, res, next) => {
+  res.status(200).json({ stripeApikey: process.env.STRIPE_API_KEY });
+}));
+
+// ==================== ERROR HANDLING ====================
+app.use((err, req, res, next) => {
+  err.statusCode = err.statusCode || 500;
+  err.message = err.message || 'Internal Server Error';
+
+  res.status(err.statusCode).json({
+    success: false,
+    message: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
+// 404 Handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`
+  });
+});
 
 // ==================== START SERVER ====================
 app.listen(PORT, () => {
