@@ -1,16 +1,13 @@
-import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
+// routes/ProtectedAdminRoute.jsx - YOUR FILE (keep this name)
+import React from "react";
+import ProtectedRoute from "./ProtectedRoute";
 
 const ProtectedAdminRoute = ({ children }) => {
-  const { loading, isAuthenticated, user } = useSelector((state) => state.user);
-  if (loading === false) {
-    if (!isAuthenticated) {
-      return <Navigate to="/login" replace />;
-    } else if (user.role !== "Admin") {
-      return <Navigate to="/" replace />;
-    }
-    return children;
-  }
+  return (
+    <ProtectedRoute requiredRole="admin">
+      {children}
+    </ProtectedRoute>
+  );
 };
 
 export default ProtectedAdminRoute;

@@ -1,116 +1,106 @@
+// routes/ProtectedRoute.jsx - COMPLETE UPDATED VERSION
+import React from "react";
 import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, requiredRole = null }) => {
   const location = useLocation();
+  
+  // Get Redux state
   const userState = useSelector((state) => state.user);
+  const sellerState = useSelector((state) => state.seller);
   
-  // Safely extract values with defaults to prevent undefined errors
-  const loading = userState?.loading ?? false;
-  const isAuthenticated = userState?.isAuthenticated ?? false;
-  const user = userState?.user ?? null;
-  
-  // Debug logging (remove in production)
-  console.log("🔐 ProtectedRoute Debug:", {
-    loading,
-    isAuthenticated,
-    hasUser: !!user,
-    userRole: user?.role,
-    currentPath: location.pathname
+  console.log("🔐 ProtectedRoute check:", {
+    userAuth: userState?.isAuthenticated,
+    sellerAuth: sellerState?.isAuthenticated,
+    userRole: userState?.user?.role,
+    requiredRole,
+    path: location.pathname
   });
-
-  // Show loading spinner while authentication is being checked
-  if (loading) {
+  
+  // Check loading state
+  const isLoading = userState?.isLoading || sellerState?.isLoading;
+  
+  if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-blue-200 rounded-full"></div>
-          <div className="w-16 h-16 border-4 border-blue-500 rounded-full animate-spin absolute top-0 left-0 border-t-transparent"></div>
+          <div className="w-12 h-12 border-4 border-blue-200 rounded-full"></div>
+          <div className="w-12 h-12 border-4 border-blue-500 rounded-full animate-spin absolute top-0 left-0 border-t-transparent"></div>
         </div>
-        <p className="mt-4 text-gray-600 font-medium">Verifying authentication...</p>
-        <p className="mt-2 text-sm text-gray-400">Please wait</p>
+        <p className="mt-4 text-gray-600 font-medium">Checking authentication...</p>
       </div>
     );
   }
-
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    console.log("🚫 Access denied. Redirecting to login from:", location.pathname);
-    
-    // Store the intended destination to redirect back after login
-    const redirectPath = encodeURIComponent(location.pathname + location.search);
-    
-    return (
-      <Navigate 
-        to={`/login?redirect=${redirectPath}`} 
-        replace 
-        state={{ 
-          from: location,
-          message: "Please login to access this page"
-        }} 
-      />
-    );
-  }
-
-  // Optional: Check for specific roles if needed
-  // Example: Only allow admin users to access certain routes
-  const requiresAdmin = location.pathname.startsWith('/admin');
-  if (requiresAdmin && user?.role !== 'Admin') {
-    console.log("⛔ Admin access required. User role:", user?.role);
-    
-    return (
-      <Navigate 
-        to="/" 
-        replace 
-        state={{ 
-          error: "Access denied. Admin privileges required."
-        }} 
-      />
-    );
-  }
-
-  // Optional: Check for seller role
-  const requiresSeller = location.pathname.startsWith('/seller');
-  if (requiresSeller && user?.role !== 'Seller') {
-    console.log("⛔ Seller access required. User role:", user?.role);
-    
-    return (
-      <Navigate 
-        to="/" 
-        replace 
-        state={{ 
-          error: "Access denied. Seller privileges required."
-        }} 
-      />
-    );
-  }
-
-  // Authentication successful - render the protected content
-  console.log("✅ Access granted to:", location.pathname);
   
-  return (
-    <div className="protected-content">
-      {/* Optional: Add authentication banner for debugging */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="bg-green-50 border-l-4 border-green-400 p-2 mb-2">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <span className="text-green-400">🔒</span>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-green-700">
-                Authenticated as: <span className="font-medium">{user?.name || user?.email || 'User'}</span>
-                {user?.role && <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Role: {user.role}</span>}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Render the protected children */}
-      {children}
-    </div>
-  );
+  // Determine authentication status
+  let isAuthenticated = false;
+  let role = null;
+  
+  // Check seller first
+  if (sellerState?.isAuthenticated && sellerState?.seller) {
+    isAuthenticated = true;
+    role = "seller";
+  } 
+  // Then check user
+  else if (userState?.isAuthenticated && userState?.user) {
+    isAuthenticated = true;
+    role = userState.user?.role || "user";
+  }
+  
+  // If not authenticated, redirect to login
+  if (!isAuthenticated) {
+    console.log("🚫 Not authenticated, redirecting to login");
+    
+    const redirectPath = encodeURIComponent(location.pathname + location.search);
+    let loginPath = "/login";
+    
+    if (requiredRole === "seller") {
+      loginPath = "/shop-login";
+    }
+    
+    return (
+      <Navigate 
+        to={`${loginPath}?redirect=${redirectPath}`} 
+        replace 
+        state={{ from: location, message: "Please login to access this page" }} 
+      />
+    );
+  }
+  
+  // Check role permissions if required
+  if (requiredRole && role !== requiredRole) {
+    console.log(`⛔ Role mismatch. Required: ${requiredRole}, Has: ${role}`);
+    
+    // Redirect based on current role
+    if (role === "seller") {
+      return <Navigate to="/dashboard" replace />;
+    } else if (role === "admin") {
+      return <Navigate to="/admin/dashboard" replace />;
+    } else {
+      return <Navigate to="/" replace />;
+    }
+  }
+  
+  // Special checks for path mismatches
+  if (role === "seller" && location.pathname.startsWith("/user/")) {
+    console.log("🛒 Seller trying to access user route, redirecting to dashboard");
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  if (role === "user" && location.pathname.startsWith("/dashboard")) {
+    console.log("👤 User trying to access seller route, redirecting to home");
+    return <Navigate to="/" replace />;
+  }
+  
+  if (role === "admin" && location.pathname.startsWith("/dashboard")) {
+    console.log("👑 Admin trying to access seller route, redirecting to admin dashboard");
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  
+  console.log(`✅ Access granted to ${location.pathname} as ${role}`);
+  
+  return children;
 };
 
 export default ProtectedRoute;

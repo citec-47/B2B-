@@ -1,7 +1,8 @@
+// frontend/src/components/Layout/Header.jsx
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styles from "../../styles/styles";
-import { productData, categoriesData } from "../../static/data";
+import { categoriesData } from "../../static/data";
 import {
   AiOutlineHeart,
   AiOutlineSearch,
@@ -20,7 +21,7 @@ import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import { RxCross1 } from "react-icons/rx";
 import { toast } from "react-toastify";
-import { logout } from "../../redux/actions/user";
+import { handleLogout, redirectAfterLogout } from "./logout";
 
 const Header = ({ activeHeading }) => {
   const { isSeller } = useSelector((state) => state.seller);
@@ -35,57 +36,59 @@ const Header = ({ activeHeading }) => {
   const [openCart, setOpenCart] = useState(false);
   const [openWishlist, setOpenWishlist] = useState(false);
   const [open, setOpen] = useState(false);
-  const [userDropdown, setUserDropdown] = useState(false); // User dropdown state
+  const [userDropdown, setUserDropdown] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
-  // Handle logout
-  const handleLogout = async () => {
+  // Logout handler using the utility
+  const performLogout = async (type = 'all') => {
+    if (isLoggingOut) return;
+    
     try {
-      // Clear all storage
-      localStorage.clear();
-      sessionStorage.clear();
+      setIsLoggingOut(true);
       
-      // Clear cookies
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
-      
-      // Dispatch logout action
-      dispatch({ type: "LogoutSuccess" });
-      dispatch({ type: "SellerLogoutSuccess" });
-      
-      toast.success("Logged out successfully!");
-      
-      // Close dropdowns
+      // Close all dropdowns/modals
       setUserDropdown(false);
       setOpen(false);
+      setOpenCart(false);
+      setOpenWishlist(false);
       
-      // Redirect to login page with cache busting
-      const timestamp = new Date().getTime();
-      window.location.href = `/login?t=${timestamp}`;
+      const loadingToast = toast.loading(`Logging out ${type === 'all' ? 'from all accounts' : `${type} account`}...`);
       
+      // Perform logout
+      const result = await handleLogout(dispatch, type);
+      
+      // Update toast based on result
+      toast.dismiss(loadingToast);
+      
+      if (result.success) {
+        toast.success(result.message, { autoClose: 2000 });
+        
+        // Redirect after successful logout
+        redirectAfterLogout(type);
+      } else {
+        toast.error("Logout completed with errors. Redirecting...", { autoClose: 2000 });
+        
+        // Still redirect even with errors
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1000);
+      }
     } catch (error) {
-      toast.error("Logout failed. Please try again.");
+      console.error("Logout process error:", error);
+      toast.error("Logout error. Redirecting...");
+      
+      // Force redirect on error
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 1500);
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
-  // Handle seller only logout
-  const handleSellerLogout = () => {
-    localStorage.removeItem("seller-token");
-    localStorage.removeItem("seller-info");
-    toast.success("Seller logged out successfully!");
-    
-    // Redirect to shop login
-    setTimeout(() => {
-      window.location.href = "/shop-login";
-    }, 1000);
-  };
-
-  // Handle search change
+  // Search handler
   const handleSearchChange = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
@@ -98,6 +101,7 @@ const Header = ({ activeHeading }) => {
     setSearchData(filteredProducts);
   };
 
+  // Scroll effect for header
   window.addEventListener("scroll", () => {
     if (window.scrollY > 70) {
       setActive(true);
@@ -105,6 +109,15 @@ const Header = ({ activeHeading }) => {
       setActive(false);
     }
   });
+
+  // Auto-redirect from dashboard if not seller
+  React.useEffect(() => {
+    if (window.location.pathname.includes('/dashboard') && !isSeller) {
+      setTimeout(() => {
+        window.location.href = `/shop-login?redirect=dashboard`;
+      }, 100);
+    }
+  }, [isSeller]);
 
   return (
     <>
@@ -114,11 +127,13 @@ const Header = ({ activeHeading }) => {
             <Link to="/">
               <img
                 src="https://shopo.quomodothemes.website/assets/images/logo.svg"
-                alt=""
+                alt="Shop Logo"
+                className="h-10"
               />
             </Link>
           </div>
-          {/*Search box  */}
+          
+          {/* Search box */}
           <div className="w-[50%] relative">
             <input
               type="text"
@@ -131,30 +146,25 @@ const Header = ({ activeHeading }) => {
               size={30}
               className="absolute right-2 top-1.5 cursor-pointer"
             />
-            {
-              // Search data if length is not 0 then show
-              searchData && searchData.length !== 0 ? (
-                <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4">
-                  {searchData &&
-                    searchData.map((i, index) => {
-                      const d = i.name;
-
-                      return (
-                        <Link to={`/product/${i._id}`}>
-                          <div className="w-full flex items-start-py-3">
-                            <img
-                              src={`${backend_url}${i.images[0]}`}
-                              alt="img"
-                              className="w-[40px] h-[40px] mr-[10px]"
-                            />
-                            <h1>{i.name}</h1>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                </div>
-              ) : null
-            }
+            {searchData && searchData.length !== 0 && (
+              <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4 max-h-[400px] overflow-y-auto">
+                {searchData.map((product, index) => (
+                  <Link to={`/product/${product._id}`} key={index} onClick={() => setSearchTerm("")}>
+                    <div className="w-full flex items-center py-3 hover:bg-gray-100 px-2 rounded">
+                      <img
+                        src={`${backend_url}${product.images[0]}`}
+                        alt={product.name}
+                        className="w-[40px] h-[40px] mr-[10px] object-cover rounded"
+                      />
+                      <div>
+                        <h1 className="font-medium">{product.name}</h1>
+                        <p className="text-sm text-gray-500">${product.discountPrice}</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
           {/* Search end */}
 
@@ -171,16 +181,16 @@ const Header = ({ activeHeading }) => {
         </div>
       </div>
 
-      {/*  2nd part of header start */}
+      {/* 2nd part of header start */}
       <div
         className={`${
-          active == true ? "shadow-sm fixed top-0 left-0 z-10" : null
+          active === true ? "shadow-sm fixed top-0 left-0 z-10" : null
         } transition hidden 800px:flex items-center justify-between w-full bg-[#3321c8] h-[70px]`}
       >
         <div
           className={`${styles.section} relative ${styles.noramlFlex} justify-between`}
         >
-          {/* Catagories */}
+          {/* Categories */}
           <div onClick={() => setDropDown(!dropDown)}>
             <div className="relative h-[60px] mt-[10px] w-[270px] hidden 1000px:block">
               <BiMenuAltLeft size={30} className="absolute top-3 left-2" />
@@ -194,12 +204,12 @@ const Header = ({ activeHeading }) => {
                 className="absolute right-2 top-4 cursor-pointer"
                 onClick={() => setDropDown(!dropDown)}
               />
-              {dropDown ? (
+              {dropDown && (
                 <DropDown
                   categoriesData={categoriesData}
                   setDropDown={setDropDown}
                 />
-              ) : null}
+              )}
             </div>
           </div>
 
@@ -209,18 +219,22 @@ const Header = ({ activeHeading }) => {
           </div>
 
           <div className="flex">
+            {/* Wishlist */}
             <div className={`${styles.noramlFlex}`}>
               <div
                 className="relative cursor-pointer mr-[15px]"
                 onClick={() => setOpenWishlist(true)}
               >
                 <AiOutlineHeart size={30} color="rgb(255 255 255 / 83%)" />
-                <span className="absolute right-0 top-0 rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
-                  {wishlist && wishlist.length}
-                </span>
+                {wishlist && wishlist.length > 0 && (
+                  <span className="absolute -right-1 -top-1 rounded-full bg-[#3bc177] w-5 h-5 text-white font-mono text-[12px] leading-tight text-center flex items-center justify-center">
+                    {wishlist.length}
+                  </span>
+                )}
               </div>
             </div>
 
+            {/* Cart */}
             <div className={`${styles.noramlFlex}`}>
               <div
                 className="relative cursor-pointer mr-[15px]"
@@ -230,9 +244,11 @@ const Header = ({ activeHeading }) => {
                   size={30}
                   color="rgb(255 255 255 / 83%)"
                 />
-                <span className="absolute right-0 top-0 rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
-                  {cart && cart.length}
-                </span>
+                {cart && cart.length > 0 && (
+                  <span className="absolute -right-1 -top-1 rounded-full bg-[#3bc177] w-5 h-5 text-white font-mono text-[12px] leading-tight text-center flex items-center justify-center">
+                    {cart.length}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -245,12 +261,15 @@ const Header = ({ activeHeading }) => {
                 {isAuthenticated ? (
                   <div className="flex items-center gap-2">
                     <img
-                      src={`${backend_url}${user.avatar}`}
-                      className="w-[35px] h-[35px] rounded-full border-2 border-white"
-                      alt=""
+                      src={`${backend_url}${user?.avatar || 'default-avatar.jpg'}`}
+                      className="w-[35px] h-[35px] rounded-full border-2 border-white object-cover"
+                      alt={user?.name}
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/35';
+                      }}
                     />
                     <span className="text-white text-sm hidden lg:block">
-                      {user.name?.split(" ")[0]}
+                      {user?.name?.split(" ")[0] || 'User'}
                     </span>
                   </div>
                 ) : (
@@ -264,8 +283,13 @@ const Header = ({ activeHeading }) => {
               {isAuthenticated && userDropdown && (
                 <div className="absolute top-12 right-0 w-48 bg-white rounded-lg shadow-lg border z-50">
                   <div className="p-3 border-b">
-                    <p className="font-semibold text-gray-800">{user.name}</p>
-                    <p className="text-sm text-gray-500">{user.email}</p>
+                    <p className="font-semibold text-gray-800 truncate">{user?.name}</p>
+                    <p className="text-sm text-gray-500 truncate">{user?.email}</p>
+                    {isSeller && (
+                      <span className="inline-block mt-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                        Seller
+                      </span>
+                    )}
                   </div>
                   
                   <div className="py-1">
@@ -291,46 +315,40 @@ const Header = ({ activeHeading }) => {
                       </Link>
                     )}
                     
-                    {isSeller && (
-                      <Link
-                        to="/settings"
-                        className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
-                        onClick={() => setUserDropdown(false)}
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                        Settings
-                      </Link>
-                    )}
-                    
                     <hr className="my-1" />
                     
+                    {/* User Only Logout */}
+                    <button
+                      onClick={() => performLogout('user')}
+                      disabled={isLoggingOut}
+                      className="flex items-center w-full text-left px-4 py-2 text-blue-600 hover:bg-blue-50 disabled:opacity-50"
+                    >
+                      <AiOutlineUser className="mr-2" />
+                      {isLoggingOut ? "Logging out..." : "Logout User Only"}
+                    </button>
+                    
+                    {/* Seller Only Logout */}
                     {isSeller && (
                       <button
-                        onClick={() => {
-                          handleSellerLogout();
-                          setUserDropdown(false);
-                        }}
-                        className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        onClick={() => performLogout('seller')}
+                        disabled={isLoggingOut}
+                        className="flex items-center w-full text-left px-4 py-2 text-orange-600 hover:bg-orange-50 disabled:opacity-50"
                       >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                         </svg>
-                        Logout Seller Only
+                        {isLoggingOut ? "Logging out..." : "Logout Seller Only"}
                       </button>
                     )}
                     
+                    {/* Complete Logout */}
                     <button
-                      onClick={() => {
-                        handleLogout();
-                        setUserDropdown(false);
-                      }}
-                      className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
+                      onClick={() => performLogout('all')}
+                      disabled={isLoggingOut}
+                      className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 border-t disabled:opacity-50"
                     >
                       <AiOutlineLogout className="mr-2" />
-                      Logout
+                      {isLoggingOut ? "Logging out..." : "Logout From All Accounts"}
                     </button>
                   </div>
                 </div>
@@ -338,15 +356,11 @@ const Header = ({ activeHeading }) => {
             </div>
             {/* USER AVATAR END */}
             
-            {/* card  popup start */}
-            {openCart ? <Cart setOpenCart={setOpenCart} /> : null}
-            {/* card popup end */}
-
-            {/* Wish list pop uo Start */}
-            {openWishlist ? (
-              <Wishlist setOpenWishlist={setOpenWishlist} />
-            ) : null}
-            {/* Wish list pop uo end */}
+            {/* Card popup */}
+            {openCart && <Cart setOpenCart={setOpenCart} />}
+            
+            {/* Wishlist popup */}
+            {openWishlist && <Wishlist setOpenWishlist={setOpenWishlist} />}
           </div>
         </div>
       </div>
@@ -370,8 +384,8 @@ const Header = ({ activeHeading }) => {
             <Link to="/">
               <img
                 src="https://shopo.quomodothemes.website/assets/images/logo.svg"
-                alt=""
-                className="mt-3 cursor-pointer"
+                alt="Shop Logo"
+                className="mt-3 cursor-pointer h-8"
               />
             </Link>
           </div>
@@ -382,33 +396,37 @@ const Header = ({ activeHeading }) => {
               onClick={() => setOpenCart(true)}
             >
               <AiOutlineShoppingCart size={30} />
-              <span className="absolute right-0 top-0 rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
-                {cart && cart.length}
-              </span>
+              {cart && cart.length > 0 && (
+                <span className="absolute -right-1 -top-1 rounded-full bg-[#3bc177] w-5 h-5 text-white font-mono text-[12px] leading-tight text-center flex items-center justify-center">
+                  {cart.length}
+                </span>
+              )}
             </div>
           </div>
-          {/* cart popup */}
-          {openCart ? <Cart setOpenCart={setOpenCart} /> : null}
+          {/* Cart popup */}
+          {openCart && <Cart setOpenCart={setOpenCart} />}
 
-          {/* wishlist popup */}
-          {openWishlist ? <Wishlist setOpenWishlist={setOpenWishlist} /> : null}
+          {/* Wishlist popup */}
+          {openWishlist && <Wishlist setOpenWishlist={setOpenWishlist} />}
         </div>
       </div>
 
       {/* MOBILE SIDEBAR */}
-      {open ? (
-        <div className={`fixed w-full bg-[#0000005f] z-20 h-full top-0 left-0`}>
+      {open && (
+        <div className="fixed w-full bg-[#0000005f] z-20 h-full top-0 left-0">
           <div className="fixed w-[70%] bg-[#fff] h-screen top-0 left-0 z-10 overflow-y-scroll">
             <div className="w-full justify-between flex pr-3">
               <div>
                 <div
                   className="relative mr-[15px]"
-                  onClick={() => setOpenWishlist(true) || setOpen(false)}
+                  onClick={() => { setOpenWishlist(true); setOpen(false); }}
                 >
                   <AiOutlineHeart size={30} className="mt-5 ml-3" />
-                  <span className="absolute right-0 top-0 rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px] leading-tight text-center">
-                    {wishlist && wishlist.length}
-                  </span>
+                  {wishlist && wishlist.length > 0 && (
+                    <span className="absolute -right-1 -top-1 rounded-full bg-[#3bc177] w-5 h-5 text-white font-mono text-[12px] leading-tight text-center flex items-center justify-center">
+                      {wishlist.length}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -429,25 +447,23 @@ const Header = ({ activeHeading }) => {
                 onChange={handleSearchChange}
               />
 
-              {searchData && (
-                <div className="absolute bg-[#fff] z-10 shadow w-full left-0 p-3">
-                  {searchData.map((i) => {
-                    const d = i.name;
-
-                    const Product_name = d.replace(/\s+/g, "-");
-                    return (
-                      <Link to={`/product/${Product_name}`}>
-                        <div className="flex items-center">
-                          <img
-                            src={i.image_Url[0].url}
-                            alt=""
-                            className="w-[50px] mr-2"
-                          />
-                          <h5>{i.name}</h5>
+              {searchData && searchData.length > 0 && (
+                <div className="absolute bg-[#fff] z-10 shadow w-full left-0 p-3 max-h-[400px] overflow-y-auto">
+                  {searchData.map((product) => (
+                    <Link to={`/product/${product._id}`} key={product._id} onClick={() => setSearchTerm("")}>
+                      <div className="flex items-center py-2 hover:bg-gray-100 px-2 rounded">
+                        <img
+                          src={`${backend_url}${product.images[0]}`}
+                          alt={product.name}
+                          className="w-[40px] h-[40px] mr-2 object-cover rounded"
+                        />
+                        <div>
+                          <h5 className="font-medium">{product.name}</h5>
+                          <p className="text-sm text-gray-500">${product.discountPrice}</p>
                         </div>
-                      </Link>
-                    );
-                  })}
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               )}
             </div>
@@ -473,36 +489,55 @@ const Header = ({ activeHeading }) => {
                 <div className="flex flex-col items-center w-full">
                   <Link to="/profile" onClick={() => setOpen(false)}>
                     <img
-                      src={`${backend_url}${user.avatar}`}
-                      alt="Profile img"
-                      className="w-[60px] h-[60px] rounded-full border-[3px] border-[#0eae88] mb-2"
+                      src={`${backend_url}${user?.avatar || 'default-avatar.jpg'}`}
+                      alt="Profile"
+                      className="w-[60px] h-[60px] rounded-full border-[3px] border-[#0eae88] mb-2 object-cover"
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/60';
+                      }}
                     />
                   </Link>
-                  <p className="font-semibold text-center">{user.name}</p>
-                  <p className="text-sm text-gray-500 text-center mb-4">{user.email}</p>
+                  <p className="font-semibold text-center">{user?.name}</p>
+                  <p className="text-sm text-gray-500 text-center mb-2">{user?.email}</p>
+                  {isSeller && (
+                    <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full mb-4">
+                      Seller Account
+                    </span>
+                  )}
                   
-                  <div className="w-full border-t pt-4">
+                  <div className="w-full border-t pt-4 space-y-2">
+                    {/* User Only Logout */}
+                    <button
+                      onClick={() => performLogout('user')}
+                      disabled={isLoggingOut}
+                      className="w-full text-left px-4 py-2 text-blue-600 hover:bg-blue-100 rounded flex items-center disabled:opacity-50"
+                    >
+                      <AiOutlineUser className="mr-2" />
+                      {isLoggingOut ? "Logging out..." : "Logout User Only"}
+                    </button>
+                    
+                    {/* Seller Only Logout */}
                     {isSeller && (
                       <button
-                        onClick={() => {
-                          handleSellerLogout();
-                          setOpen(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded"
+                        onClick={() => performLogout('seller')}
+                        disabled={isLoggingOut}
+                        className="w-full text-left px-4 py-2 text-orange-600 hover:bg-orange-100 rounded flex items-center disabled:opacity-50"
                       >
-                        Logout Seller Only
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                        {isLoggingOut ? "Logging out..." : "Logout Seller Only"}
                       </button>
                     )}
                     
+                    {/* Complete Logout */}
                     <button
-                      onClick={() => {
-                        handleLogout();
-                        setOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded flex items-center mt-2"
+                      onClick={() => performLogout('all')}
+                      disabled={isLoggingOut}
+                      className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-100 rounded flex items-center border-t pt-3 disabled:opacity-50"
                     >
                       <AiOutlineLogout className="mr-2" />
-                      Logout
+                      {isLoggingOut ? "Logging out..." : "Logout From All Accounts"}
                     </button>
                   </div>
                 </div>
@@ -527,7 +562,7 @@ const Header = ({ activeHeading }) => {
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </>
   );
 };

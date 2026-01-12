@@ -1,3 +1,4 @@
+// redux/actions/seller.js
 import axios from "axios";
 import { server } from "../../server";
 
@@ -18,8 +19,8 @@ export const getAllSellers = () => async (dispatch) => {
     });
   } catch (error) {
     dispatch({
-      type: "getAllSellerFailed",
-      //   payload: error.response.data.message,
+      type: "getAllSellersFailed",
+      payload: error.response?.data?.message || error.message,
     });
   }
 };
