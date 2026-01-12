@@ -1,20 +1,34 @@
+// product.js actions - COMPLETE FIXED VERSION (WITHOUT DUPLICATE EXPORTS)
 import axios from "axios";
-import { server } from "../../server";
+import { server, apiUrl, getImageUrl } from "../../server";
 
-// create product
+// create product - FIXED
 export const createProduct = (newForm) => async (dispatch) => {
   try {
     dispatch({
       type: "productCreateRequest",
     });
 
-    const config = { headers: { "Content-Type": "multipart/form-data" } };
+    const config = { 
+      headers: { "Content-Type": "multipart/form-data" },
+      withCredentials: true 
+    };
 
+    console.log('🔄 Creating product...');
+    console.log('📦 Form data:', newForm);
+    
     const { data } = await axios.post(
-      `${server}/product/create-product`,
+      apiUrl("/product/create-product"),
       newForm,
       config
     );
+    
+    console.log('✅ Product created:', data);
+    
+    // Process images to ensure full URLs
+    if (data.product) {
+      data.product.images = data.product.images?.map(img => getImageUrl(img));
+    }
     
     dispatch({
       type: "productCreateSuccess",
@@ -43,40 +57,76 @@ export const createProduct = (newForm) => async (dispatch) => {
   }
 };
 
-// get All Products of a shop - FIXED WITH ERROR HANDLING
+// get All Products of a shop - COMPLETE FIXED VERSION
 export const getAllProductsShop = (id) => async (dispatch) => {
   try {
     dispatch({
       type: "getAllProductsShopRequest",
     });
 
-    console.log(`[PRODUCT] Fetching products for shop: ${id}`);
+    console.log(`[PRODUCT ACTION] 🛍️ Fetching products for shop: ${id}`);
+    console.log(`[PRODUCT ACTION] 🔗 API URL: ${apiUrl(`/product/get-all-products-shop/${id}`)}`);
     
     const { data } = await axios.get(
-      `${server}/product/get-all-products-shop/${id}`,
+      apiUrl(`/product/get-all-products-shop/${id}`),
       { 
         withCredentials: true,
-        timeout: 10000 
+        timeout: 15000 
       }
     );
     
-    console.log(`[PRODUCT] Success: ${data.products?.length || 0} products`);
+    console.log(`[PRODUCT ACTION] ✅ Success: ${data.products?.length || 0} products`);
+    console.log(`[PRODUCT ACTION] 📊 Statistics:`, data.statistics);
+    console.log(`[PRODUCT ACTION] 🌐 Backend URL: ${data.backendUrl}`);
+    
+    // Process all product images to ensure full URLs
+    const processedProducts = data.products?.map(product => {
+      const processed = { ...product };
+      
+      // Ensure images have full URLs
+      if (processed.images && Array.isArray(processed.images)) {
+        processed.images = processed.images.map(img => getImageUrl(img));
+        console.log(`🖼️ Processed images for "${processed.name}":`, processed.images);
+      }
+      
+      // Ensure shop avatar has full URL
+      if (processed.shop && processed.shop.avatar) {
+        processed.shop.avatar = getImageUrl(processed.shop.avatar);
+      }
+      
+      return processed;
+    }) || [];
+    
+    // Log sample processed product
+    if (processedProducts.length > 0) {
+      console.log(`[PRODUCT ACTION] 🎯 Sample processed product:`, {
+        name: processedProducts[0].name,
+        imageCount: processedProducts[0].images?.length,
+        firstImage: processedProducts[0].images?.[0]
+      });
+    }
     
     dispatch({
       type: "getAllProductsShopSuccess",
-      payload: data.products || [],
+      payload: processedProducts,
     });
     
-    return { success: true, products: data.products || [] };
-  } catch (error) {
-    console.error("[PRODUCT] Fetch shop products error:", error);
+    return { 
+      success: true, 
+      products: processedProducts,
+      statistics: data.statistics
+    };
     
-    // SAFE ERROR HANDLING
+  } catch (error) {
+    console.error("[PRODUCT ACTION] ❌ Error fetching shop products:", error);
+    
     let errorMessage = "Network error";
     if (error.response && error.response.data) {
       errorMessage = error.response.data.message || error.response.statusText || "Server error";
+      console.error("[PRODUCT ACTION] Server response:", error.response.data);
     } else if (error.request) {
-      errorMessage = "No response from server. Check if backend is running.";
+      console.error("[PRODUCT ACTION] No response from server");
+      errorMessage = "No response from server. Check if backend is running at: " + server;
     } else {
       errorMessage = error.message || "Request setup error";
     }
@@ -86,11 +136,20 @@ export const getAllProductsShop = (id) => async (dispatch) => {
       payload: errorMessage,
     });
     
-    return { success: false, error: errorMessage, products: [] };
+    return { 
+      success: false, 
+      error: errorMessage, 
+      products: [],
+      debug: {
+        server,
+        apiUrl: apiUrl(`/product/get-all-products-shop/${id}`),
+        error
+      }
+    };
   }
 };
 
-// delete product of a shop
+// delete product of a shop - FIXED
 export const deleteProduct = (id) => async (dispatch) => {
   try {
     dispatch({
@@ -100,7 +159,7 @@ export const deleteProduct = (id) => async (dispatch) => {
     console.log(`[PRODUCT] Deleting product: ${id}`);
     
     const { data } = await axios.delete(
-      `${server}/product/delete-shop-product/${id}`,
+      apiUrl(`/product/delete-shop-product/${id}`),
       {
         withCredentials: true,
       }
@@ -135,7 +194,7 @@ export const deleteProduct = (id) => async (dispatch) => {
   }
 };
 
-// get all products (Public - for homepage)
+// get all products (Public - for homepage) - FIXED
 export const getAllProducts = () => async (dispatch) => {
   try {
     dispatch({
@@ -145,18 +204,27 @@ export const getAllProducts = () => async (dispatch) => {
     console.log("[PRODUCT] Getting all public products...");
     
     const { data } = await axios.get(
-      `${server}/product/get-all-products-public`,
+      apiUrl("/product/get-all-products"),
       { timeout: 10000 }
     );
     
     console.log(`[PRODUCT] Received ${data.products?.length || 0} public products`);
     
+    // Process images
+    const processedProducts = data.products?.map(product => {
+      const processed = { ...product };
+      if (processed.images && Array.isArray(processed.images)) {
+        processed.images = processed.images.map(img => getImageUrl(img));
+      }
+      return processed;
+    }) || [];
+    
     dispatch({
       type: "getAllProductsSuccess",
-      payload: data.products || [],
+      payload: processedProducts,
     });
     
-    return { success: true, products: data.products || [] };
+    return { success: true, products: processedProducts };
   } catch (error) {
     console.error("[PRODUCT] Get all products error:", error);
     
@@ -179,7 +247,7 @@ export const getAllProducts = () => async (dispatch) => {
   }
 };
 
-// bulk import products
+// bulk import products - FIXED
 export const bulkImportProducts = (productsData, shopId, markupPercentage = 30) => async (dispatch) => {
   try {
     dispatch({
@@ -196,7 +264,7 @@ export const bulkImportProducts = (productsData, shopId, markupPercentage = 30) 
     console.log(`[PRODUCT] Bulk importing ${productsData.length} products for shop: ${shopId}`);
     
     const { data } = await axios.post(
-      `${server}/product/bulk-import-external`,
+      apiUrl("/product/bulk-import-external"),
       {
         products: productsData,
         shopId,
@@ -239,7 +307,7 @@ export const bulkImportProducts = (productsData, shopId, markupPercentage = 30) 
   }
 };
 
-// fetch external products for import
+// fetch external products for import - FIXED
 export const fetchExternalProducts = (params = {}) => async () => {
   try {
     const { category = "", search = "", page = 1, limit = 12 } = params;
@@ -254,7 +322,7 @@ export const fetchExternalProducts = (params = {}) => async () => {
     console.log(`[PRODUCT] Fetching external products with params:`, params);
     
     const { data } = await axios.get(
-      `${server}/product/fetch-external?${queryParams}`,
+      apiUrl(`/product/fetch-external?${queryParams}`),
       { withCredentials: true, timeout: 10000 }
     );
 
@@ -275,11 +343,11 @@ export const fetchExternalProducts = (params = {}) => async () => {
   }
 };
 
-// get import categories
+// get import categories - FIXED
 export const getImportCategories = () => async () => {
   try {
     const { data } = await axios.get(
-      `${server}/product/import-categories`,
+      apiUrl("/product/import-categories"),
       { withCredentials: true, timeout: 5000 }
     );
     
@@ -294,104 +362,6 @@ export const getImportCategories = () => async () => {
       error: error.message,
       data: { categories: defaultCategories }
     };
-  }
-};
-
-// import single product
-export const importSingleProduct = (productData, shopId, markupPercentage = 30) => async (dispatch) => {
-  try {
-    const config = { 
-      headers: { "Content-Type": "application/json" },
-      withCredentials: true 
-    };
-
-    console.log("[PRODUCT] Importing single product:", productData.name);
-    
-    const { data } = await axios.post(
-      `${server}/product/import-external`,
-      {
-        ...productData,
-        shopId,
-        markupPercentage
-      },
-      config
-    );
-
-    // Refresh products after import
-    if (shopId) {
-      dispatch(getAllProductsShop(shopId));
-    }
-
-    return { success: true, data };
-  } catch (error) {
-    console.error("[PRODUCT] Single import error:", error);
-    
-    let errorMessage = "Failed to import product";
-    if (error.response && error.response.data) {
-      errorMessage = error.response.data.message || errorMessage;
-    } else if (error.request) {
-      errorMessage = "No response from server";
-    } else {
-      errorMessage = error.message;
-    }
-    
-    return { success: false, error: errorMessage };
-  }
-};
-
-// fix imported products (debug tool)
-export const fixImportedProducts = (shopId) => async (dispatch) => {
-  try {
-    console.log("[PRODUCT] Fixing imported products for shop:", shopId);
-    
-    const { data } = await axios.post(
-      `${server}/product/fix-imported-products/${shopId}`,
-      {},
-      { withCredentials: true }
-    );
-
-    // Refresh products after fix
-    dispatch(getAllProductsShop(shopId));
-    
-    return { success: true, data };
-  } catch (error) {
-    console.error("[PRODUCT] Fix imported products error:", error);
-    
-    let errorMessage = "Failed to fix products";
-    if (error.response && error.response.data) {
-      errorMessage = error.response.data.message || errorMessage;
-    } else if (error.request) {
-      errorMessage = "No response from server";
-    } else {
-      errorMessage = error.message;
-    }
-    
-    return { success: false, error: errorMessage };
-  }
-};
-
-// debug check products
-export const debugCheckProducts = (shopId) => async () => {
-  try {
-    const { data } = await axios.get(
-      `${server}/product/debug/check-products/${shopId}`,
-      { withCredentials: true }
-    );
-    
-    return { success: true, data };
-  } catch (error) {
-    console.error("[PRODUCT] Debug check error:", error);
-    
-    let errorMessage = "Debug check failed";
-    if (error.response && error.response.data) {
-      errorMessage = error.response.data.message || errorMessage;
-    } else if (error.request) {
-      errorMessage = "No response from server";
-    } else {
-      errorMessage = error.message;
-    }
-    
-    return { success: false, error: errorMessage };
   }
 };
 

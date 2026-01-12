@@ -119,10 +119,20 @@ const App = () => {
 
     // Always load these (public data)
     Store.dispatch(getAllProducts());
-    Store.dispatch(getAllEvents());
+    
+    // Try to load events, but handle if endpoint doesn't exist
+    try {
+      Store.dispatch(getAllEvents());
+    } catch (error) {
+      console.log("Events endpoint may not be available:", error.message);
+    }
+    
     getStripeApikey();
     
-    setLoading(false);
+    // Set loading to false after a short delay
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
   }, []);
 
   if (loading) {
