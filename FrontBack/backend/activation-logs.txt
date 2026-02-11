@@ -1,0 +1,10 @@
+=== ACTIVATION LOGS ===
+
+
+[2026-01-05T10:21:43.128Z] SHOP ACTIVATION:
+To: ndo520596@gmail.com
+Name: Montana (Shop)
+Activation URL: http://localhost:3000/seller/activation/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im5kbzUyMDU5NkBnbWFpbC5jb20iLCJuYW1lIjoiTW9udGFuYSIsInBhc3N3b3JkIjoiJDJhJDEwJHdqVkNva2R4ei9SQzVLWGZMeFVaWXV6ajVrVDJHRkJXYjlQUnp1VUk3NDBILkFMVExiSUxhIiwiYWRkcmVzcyI6IllhdW9uZGUiLCJwaG9uZU51bWJlciI6IjY1MzA1NTQxMCIsInppcENvZGUiOiIyMzQ1IiwiYXZhdGFyIjoiMTc2NzYwODQ5OTI2NC01NDU5OTk2OTguanBlZyIsImlhdCI6MTc2NzYwODQ5OSwiZXhwIjoxNzY3Njk0ODk5fQ.f84xW3V6uxcb5iSX88WLjJzOtHBkPAI8C0GU71IG6PY
+Email Sent: Yes
+Error: None
+---------------------------
