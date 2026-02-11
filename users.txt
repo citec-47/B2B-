@@ -1,0 +1,20 @@
+ debug: true }
+Creating test users...
+
+    ✅ TEST USERS CREATED SUCCESSFULLY   
+    ====================================
+    Admin User:
+    • Email: admin@test.com
+    • Password: admin123
+    • ID: DewiwcPK56PFaVtzrDhQ
+    
+    Regular User:
+    • Email: user@test.com
+    • Password: admin123
+    • ID: XokLwOiXiwKyjM8bb55z
+    
+    Seller/Shop:
+    • Email: seller@test.com
+    • Password: admin123
+    • ID: J9yAKQRmmDdXVm9P81jN
+    ====================================
