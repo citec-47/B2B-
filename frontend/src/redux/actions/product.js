@@ -1,9 +1,15 @@
+<<<<<<< HEAD
 // redux/actions/product.js
 import axios from "axios";
 import { server } from "../../server";
 
 // ==================== PRODUCT CRUD ACTIONS ====================
 
+=======
+import axios from "axios";
+import { server } from "../../server";
+
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 // create product
 export const createProduct = (newForm) => async (dispatch) => {
   try {
@@ -11,20 +17,38 @@ export const createProduct = (newForm) => async (dispatch) => {
       type: "productCreateRequest",
     });
 
+<<<<<<< HEAD
     const token = localStorage.getItem('seller_token');
+=======
+    // Get the authentication token from localStorage
+    const token = localStorage.getItem('seller_token') || 
+                  localStorage.getItem('user_token') || 
+                  localStorage.getItem('admin_token');
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 
     const config = { 
       headers: { 
         "Content-Type": "multipart/form-data",
+<<<<<<< HEAD
         "Authorization": `Bearer ${token}`
       },
+=======
+        // Add Authorization header
+        "Authorization": `Bearer ${token}`
+      },
+      // Also add withCredentials for cookies
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
       withCredentials: true 
     };
 
     const { data } = await axios.post(
       `${server}/product/create-product`,
       newForm,
+<<<<<<< HEAD
       config
+=======
+      config  // Pass the config with headers
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     );
     
     dispatch({
@@ -34,7 +58,11 @@ export const createProduct = (newForm) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: "productCreateFail",
+<<<<<<< HEAD
       payload: error.response?.data?.message || error.message,
+=======
+      payload: error.response.data.message,
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     });
   }
 };
@@ -56,7 +84,11 @@ export const getAllProductsShop = (id) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: "getAllProductsShopFailed",
+<<<<<<< HEAD
       payload: error.response?.data?.message || error.message,
+=======
+      payload: error.response.data.message,
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     });
   }
 };
@@ -68,7 +100,14 @@ export const deleteProduct = (id) => async (dispatch) => {
       type: "deleteProductRequest",
     });
 
+<<<<<<< HEAD
     const token = localStorage.getItem('seller_token');
+=======
+    // Get token for delete request too
+    const token = localStorage.getItem('seller_token') || 
+                  localStorage.getItem('user_token') || 
+                  localStorage.getItem('admin_token');
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 
     const { data } = await axios.delete(
       `${server}/product/delete-shop-product/${id}`,
@@ -87,7 +126,11 @@ export const deleteProduct = (id) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: "deleteProductFailed",
+<<<<<<< HEAD
       payload: error.response?.data?.message || error.message,
+=======
+      payload: error.response.data.message,
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     });
   }
 };
@@ -107,6 +150,7 @@ export const getAllProducts = () => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: "getAllProductsFailed",
+<<<<<<< HEAD
       payload: error.response?.data?.message || error.message,
     });
   }
@@ -313,4 +357,9 @@ export const clearErrors = () => (dispatch) => {
   dispatch({
     type: "clearErrors",
   });
+=======
+      payload: error.response.data.message,
+    });
+  }
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 };

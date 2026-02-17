@@ -5,7 +5,10 @@ import { useDispatch } from 'react-redux';
 import axios from "axios";
 import { toast } from "react-toastify";
 import { server } from "../../server";
+<<<<<<< HEAD
 import { loginUser, loginSeller } from "../../redux/actions/user";
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 
 const Login = () => {
     // State
@@ -45,22 +48,88 @@ const Login = () => {
         }
     };
 
+<<<<<<< HEAD
     const redirectBasedOnRole = (role) => {
         const routes = {
             'admin': '/admin/dashboard',
             'seller': '/dashboard',
+=======
+    const processLoginResponse = (response, role) => {
+        const userData = response.data[role === 'seller' ? 'seller' : 'user'] || response.data;
+        const token = response.data.token;
+        
+        const completeUserData = {
+            ...userData,
+            role,
+            isAuthenticated: true,
+            isAdmin: role === 'admin',
+            isSeller: role === 'seller',
+            isUser: role === 'user'
+        };
+
+        // Save ALL necessary data to localStorage for persistence
+        localStorage.setItem("user", JSON.stringify(completeUserData));
+        localStorage.setItem("token", token);
+        localStorage.setItem("userRole", role);
+        localStorage.setItem("isAuthenticated", "true");
+        
+        // Set axios default headers for all future requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+        // Dispatch to Redux
+        dispatch({ 
+            type: role === 'seller' ? "SellerLoginSuccess" : "UserLoginSuccess", 
+            payload: completeUserData 
+        });
+
+        return completeUserData;
+    };
+
+    const redirectBasedOnRole = (role) => {
+        const routes = {
+            'admin': '/admin/dashboard',
+            'seller': '/seller/dashboard',
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
             'user': '/'
         };
         
         setTimeout(() => navigate(routes[role] || '/'), 50);
     };
 
+<<<<<<< HEAD
+=======
+    const attemptLogin = async (endpoint, loginData) => {
+        try {
+            const response = await axios.post(
+                `${server}${endpoint}`,
+                loginData,
+                { 
+                    withCredentials: true,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
+
+            if (!response.data.success) {
+                throw new Error(response.data.message || "Login failed");
+            }
+
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    };
+
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     const handleSubmit = async (e) => {
         e.preventDefault();
         
         const { email, password } = formData;
         const { isLoading } = uiState;
 
+<<<<<<< HEAD
+=======
+        // Validation
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
         if (!email || !password) {
             toast.error("Please fill in all fields");
             return;
@@ -73,6 +142,7 @@ const Login = () => {
         try {
             console.log("🔐 Attempting login with email:", email);
             
+<<<<<<< HEAD
             // Try user login first (includes admin)
             const userResult = await dispatch(loginUser(email, password));
             
@@ -139,6 +209,49 @@ const Login = () => {
         } catch (error) {
             console.error("❌ Login error:", error);
             const errorMessage = error.message || "Login failed. Please check your credentials.";
+=======
+            // Try user login (includes admin)
+            try {
+                const response = await attemptLogin("/user/login-user", { email, password });
+                const userRole = response.data.user?.role || 'user';
+                
+                console.log("✅ User login successful, role:", userRole);
+                
+                const userData = processLoginResponse(response, userRole);
+                handleRememberEmail();
+                toast.success(`🎉 Login Successful! Welcome ${userRole}`);
+                redirectBasedOnRole(userRole);
+                
+            } catch (userError) {
+                console.log("User login failed, trying seller login...");
+                
+                // Try seller login
+                const response = await attemptLogin("/shop/login-shop", { email, password });
+                console.log("✅ Seller login successful");
+                
+                const sellerData = processLoginResponse(response, 'seller');
+                handleRememberEmail();
+                toast.success("🎉 Seller Login Successful!");
+                redirectBasedOnRole('seller');
+            }
+
+        } catch (error) {
+            console.error("❌ Login error:", error);
+            
+            let errorMessage = "Login failed. Please check your credentials.";
+            
+            if (error.response) {
+                const { status, data } = error.response;
+                if (data?.message) errorMessage = data.message;
+                else if (status === 401) errorMessage = "Invalid email or password";
+                else if (status === 404) errorMessage = "Server endpoint not found";
+            } else if (error.request) {
+                errorMessage = "No response from server. Please check your connection.";
+            } else {
+                errorMessage = error.message || "Login failed";
+            }
+            
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
             toast.error(errorMessage);
             dispatch({ type: "UserLoginFail", payload: errorMessage });
         } finally {

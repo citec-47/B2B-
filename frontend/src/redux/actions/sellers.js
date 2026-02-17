@@ -19,6 +19,7 @@ export const getAllSellers = () => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: "getAllSellerFailed",
+<<<<<<< HEAD
       payload: error.response?.data?.message || error.message,
     });
   }
@@ -93,3 +94,9 @@ export const unsuspendSeller = (sellerId) => async (dispatch) => {
     return { success: false, error: error.response?.data?.message };
   }
 };
+=======
+      //   payload: error.response.data.message,
+    });
+  }
+};
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31

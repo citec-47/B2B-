@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 // src/components/Profile/ProfileSidebar.jsx
 import React, { useEffect, useState } from "react";
+=======
+// Profile/ProfileSidebar.jsx
+import React from "react";
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 import { AiOutlineLogin, AiOutlineMessage } from "react-icons/ai";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { HiOutlineReceiptRefund, HiOutlineShoppingBag } from "react-icons/hi";
@@ -15,6 +20,7 @@ import axios from "axios";
 import { server } from "../../server";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+<<<<<<< HEAD
 import { AiOutlineStop } from "react-icons/ai";
 
 const ProfileSidebar = ({ active, setActive }) => {
@@ -44,6 +50,13 @@ const ProfileSidebar = ({ active, setActive }) => {
       console.error("Error checking suspension:", error);
     }
   };
+=======
+
+const ProfileSidebar = ({ active, setActive }) => {
+  const navigate = useNavigate();
+
+  const { user } = useSelector((state) => state.user);
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 
   const logoutHandler = () => {
     axios
@@ -59,14 +72,18 @@ const ProfileSidebar = ({ active, setActive }) => {
   };
 
   const handleInboxClick = () => {
+<<<<<<< HEAD
     if (isSuspended) {
       toast.error("Cannot access inbox while account is suspended");
       return;
     }
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     setActive(4);
     navigate("/inbox");
   };
 
+<<<<<<< HEAD
   const handleMenuItemClick = (menuId, path) => {
     if (isSuspended && menuId !== 8) { // Allow logout only
       toast.error("This feature is disabled while your account is suspended");
@@ -118,6 +135,108 @@ const ProfileSidebar = ({ active, setActive }) => {
           </span>
         </div>
       ))}
+=======
+  return (
+    <div className="w-full bg-white shadow-sm rounded-[10px] p-4 pt-8">
+      <div
+        className="flex items-center cursor-pointer w-full mb-8"
+        onClick={() => setActive(1)}
+      >
+        <RxPerson size={20} color={active === 1 ? "red" : ""} />
+        <span
+          className={`pl-3 ${
+            active === 1 ? "text-[red]" : ""
+          } 800px:block hidden`}
+        >
+          Profile
+        </span>
+      </div>
+
+      <div
+        className="flex items-center cursor-pointer w-full mb-8"
+        onClick={() => setActive(2)}
+      >
+        <HiOutlineShoppingBag size={20} color={active === 2 ? "red" : ""} />
+        <span
+          className={`pl-3 ${
+            active === 2 ? "text-[red]" : ""
+          } 800px:block hidden`}
+        >
+          Orders
+        </span>
+      </div>
+
+      <div
+        className="flex items-center cursor-pointer w-full mb-8"
+        onClick={() => setActive(3)}
+      >
+        <HiOutlineReceiptRefund size={20} color={active === 3 ? "red" : ""} />
+        <span
+          className={`pl-3 ${
+            active === 3 ? "text-[red]" : ""
+          } 800px:block hidden`}
+        >
+          Refunds
+        </span>
+      </div>
+
+      <div
+        className="flex items-center cursor-pointer w-full mb-8"
+        onClick={handleInboxClick}
+      >
+        <AiOutlineMessage size={20} color={active === 4 ? "red" : ""} />
+        <span
+          className={`pl-3 ${
+            active === 4 ? "text-[red]" : ""
+          } 800px:block hidden`}
+        >
+          Inbox
+        </span>
+      </div>
+
+      <div
+        className="flex items-center cursor-pointer w-full mb-8"
+        onClick={() => setActive(5)}
+      >
+        <MdOutlineTrackChanges size={20} color={active === 5 ? "red" : ""} />
+        <span
+          className={`pl-3 ${
+            active === 5 ? "text-[red]" : ""
+          } 800px:block hidden`}
+        >
+          Track Order
+        </span>
+      </div>
+
+      <div
+        className="flex items-center cursor-pointer w-full mb-8"
+        onClick={() => setActive(6)}
+      >
+        <RiLockPasswordLine size={20} color={active === 6 ? "red" : ""} />
+
+        <span
+          className={`pl-3 ${
+            active === 6 ? "text-[red]" : ""
+          } 800px:block hidden`}
+        >
+          Change password
+        </span>
+      </div>
+
+      <div
+        className="flex items-center cursor-pointer w-full mb-8"
+        onClick={() => setActive(7)}
+      >
+        <TbAddressBook size={20} color={active === 7 ? "red" : ""} />
+        <span
+          className={`pl-3 ${
+            active === 7 ? "text-[red]" : ""
+          } 800px:block hidden`}
+        >
+          Address
+        </span>
+      </div>
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 
       {user && user?.role === "Admin" && (
         <Link to="/admin/dashboard">

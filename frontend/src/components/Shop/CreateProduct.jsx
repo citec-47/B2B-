@@ -2,7 +2,11 @@
 import React, { useEffect, useState } from "react";
 import { AiOutlinePlusCircle, AiOutlineDelete } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
+<<<<<<< HEAD
 import { useNavigate, Link } from "react-router-dom";
+=======
+import { useNavigate } from "react-router-dom";
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 import { createProduct } from "../../redux/actions/product";
 import { categoriesData } from "../../static/data";
 import { toast } from "react-toastify";
@@ -108,6 +112,7 @@ const CreateProduct = () => {
 
     return (
         <div className="w-[90%] 800px:w-[70%] bg-white shadow-lg rounded-lg p-6 m-4 overflow-y-auto max-h-[90vh]">
+<<<<<<< HEAD
             {/* Auto-Fetch Button at the top */}
             <div className="text-center mb-6">
                 <Link to="/dashboard-auto-fetch">
@@ -121,6 +126,8 @@ const CreateProduct = () => {
                 <p className="text-sm text-gray-500 mt-2">Import thousands of products automatically</p>
             </div>
 
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
             <h5 className="text-2xl font-semibold font-Poppins text-center text-gray-800 mb-6">
                 Create New Product
             </h5>

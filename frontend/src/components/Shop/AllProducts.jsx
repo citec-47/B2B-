@@ -184,7 +184,11 @@ const AllProducts = () => {
           </div>
           
           <div className="p-4">
+<<<<<<< HEAD
             <div className="mb-4 flex flex-wrap gap-2">
+=======
+            <div className="mb-4">
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
               <Link to="/dashboard-create-product">
                 <Button 
                   variant="contained" 
@@ -194,6 +198,7 @@ const AllProducts = () => {
                   + Add New Product
                 </Button>
               </Link>
+<<<<<<< HEAD
               
               {/* Auto-Fetch Button */}
               <Link to="/dashboard-auto-fetch">
@@ -208,6 +213,8 @@ const AllProducts = () => {
                   Auto-Fetch from AliExpress
                 </Button>
               </Link>
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
             </div>
             
             {rows.length === 0 ? (
@@ -216,6 +223,7 @@ const AllProducts = () => {
                 <p className="text-gray-400 mt-2">
                   Start by creating your first product
                 </p>
+<<<<<<< HEAD
                 <div className="flex justify-center gap-4 mt-4">
                   <Link to="/dashboard-create-product">
                     <Button 
@@ -235,6 +243,17 @@ const AllProducts = () => {
                     </Button>
                   </Link>
                 </div>
+=======
+                <Link to="/dashboard-create-product">
+                  <Button 
+                    variant="outlined" 
+                    color="primary"
+                    className="mt-4"
+                  >
+                    Create Product
+                  </Button>
+                </Link>
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
               </div>
             ) : (
               <div style={{ height: 500, width: "100%" }}>

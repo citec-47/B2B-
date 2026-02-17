@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // redux/reducers/product.js
 import { createReducer } from "@reduxjs/toolkit";
 
@@ -22,26 +23,42 @@ const initialState = {
   importResults: null,
   dummyJSONProductDetails: null,
   dummyJSONCategories: [],
+=======
+import { createReducer } from "@reduxjs/toolkit";
+
+const initialState = {
+  isLoading: true,
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 };
 
 export const productReducer = createReducer(initialState, (builder) => {
   builder
+<<<<<<< HEAD
     // ==================== PRODUCT CREATE ====================
     .addCase("productCreateRequest", (state) => {
       state.isLoading = true;
       state.error = null;
       state.success = false;
+=======
+    // Product create
+    .addCase("productCreateRequest", (state) => {
+      state.isLoading = true;
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     })
     .addCase("productCreateSuccess", (state, action) => {
       state.isLoading = false;
       state.product = action.payload;
       state.success = true;
+<<<<<<< HEAD
       state.error = null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     })
     .addCase("productCreateFail", (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
       state.success = false;
+<<<<<<< HEAD
       state.product = null;
     })
 
@@ -54,10 +71,22 @@ export const productReducer = createReducer(initialState, (builder) => {
       state.isLoading = false;
       state.products = action.payload || [];
       state.error = null;
+=======
+    })
+
+    // Get all products of shop
+    .addCase("getAllProductsShopRequest", (state) => {
+      state.isLoading = true;
+    })
+    .addCase("getAllProductsShopSuccess", (state, action) => {
+      state.isLoading = false;
+      state.products = action.payload;
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     })
     .addCase("getAllProductsShopFailed", (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
+<<<<<<< HEAD
       state.products = [];
     })
 
@@ -65,16 +94,27 @@ export const productReducer = createReducer(initialState, (builder) => {
     .addCase("deleteProductRequest", (state) => {
       state.isLoading = true;
       state.error = null;
+=======
+    })
+
+    // Delete product of a shop
+    .addCase("deleteProductRequest", (state) => {
+      state.isLoading = true;
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     })
     .addCase("deleteProductSuccess", (state, action) => {
       state.isLoading = false;
       state.message = action.payload;
+<<<<<<< HEAD
       state.success = true;
       state.error = null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     })
     .addCase("deleteProductFailed", (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
+<<<<<<< HEAD
       state.success = false;
     })
 
@@ -87,10 +127,22 @@ export const productReducer = createReducer(initialState, (builder) => {
       state.isLoading = false;
       state.allProducts = action.payload || [];
       state.error = null;
+=======
+    })
+
+    // Get all products
+    .addCase("getAllProductsRequest", (state) => {
+      state.isLoading = true;
+    })
+    .addCase("getAllProductsSuccess", (state, action) => {
+      state.isLoading = false;
+      state.allProducts = action.payload;
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     })
     .addCase("getAllProductsFailed", (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
+<<<<<<< HEAD
       state.allProducts = [];
     })
 
@@ -189,5 +241,12 @@ export const productReducer = createReducer(initialState, (builder) => {
       state.error = null;
       state.success = false;
       state.message = null;
+=======
+    })
+
+    // Clear errors
+    .addCase("clearErrors", (state) => {
+      state.error = null;
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     });
 });

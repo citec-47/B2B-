@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Admin/AllUsers.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +15,16 @@ import {
   AiOutlineExclamationCircle
 } from "react-icons/ai";
 import { Button, IconButton, CircularProgress } from "@material-ui/core";
+=======
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { getAllUsers } from "../../redux/actions/user";
+import { DataGrid } from "@material-ui/data-grid";
+import { AiOutlineDelete, AiOutlineEye, AiOutlineShop, AiOutlineUser, AiOutlineReload } from "react-icons/ai";
+import { Button, IconButton, CircularProgress } from "@material-ui/core";
+import styles from "../../styles/styles";
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 import { RxCross1 } from "react-icons/rx";
 import axios from "axios";
 import { server } from "../../server";
@@ -25,7 +36,10 @@ const AllUsers = () => {
   const [open, setOpen] = useState(false);
   const [openStoreModal, setOpenStoreModal] = useState(false);
   const [openUserDetailsModal, setOpenUserDetailsModal] = useState(false);
+<<<<<<< HEAD
   const [openSuspendModal, setOpenSuspendModal] = useState(false);
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   const [userId, setUserId] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [userStores, setUserStores] = useState([]);
@@ -35,8 +49,11 @@ const AllUsers = () => {
   const [localLoading, setLocalLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [showError, setShowError] = useState(false);
+<<<<<<< HEAD
   const [suspendReason, setSuspendReason] = useState("");
   const [suspendAction, setSuspendAction] = useState(""); // "suspend" or "activate"
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 
   useEffect(() => {
     loadData();
@@ -57,7 +74,20 @@ const AllUsers = () => {
   const fetchAllSellers = async () => {
     try {
       setSellersLoading(true);
+<<<<<<< HEAD
       
+=======
+      // First test if endpoint is accessible
+      try {
+        const testResponse = await axios.get(`${server}/api/v2/test-admin-auth`, {
+          withCredentials: true,
+        });
+        console.log("✅ Admin auth test:", testResponse.data);
+      } catch (testError) {
+        console.error("❌ Admin auth test failed:", testError.message);
+      }
+
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
       const { data } = await axios.get(`${server}/shop/admin-all-sellers`, {
         withCredentials: true,
       });
@@ -138,7 +168,11 @@ const AllUsers = () => {
         name: user.name,
         email: user.email,
         role: user.role,
+<<<<<<< HEAD
         isActive: user.isActive !== false
+=======
+        isActive: user.isActive
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
       });
       setOpenUserDetailsModal(true);
     } finally {
@@ -205,6 +239,7 @@ const AllUsers = () => {
     }
   };
 
+<<<<<<< HEAD
   // Handle suspend/activate user
   const handleSuspendUser = (user, action) => {
     setSelectedUser(user);
@@ -296,6 +331,25 @@ const AllUsers = () => {
     } catch (error) {
       console.error(`Error ${suspendAction}ing user:`, error);
       toast.error(error.response?.data?.message || `Failed to ${suspendAction} user`);
+=======
+  const handleSuspendUser = async (userId, status) => {
+    try {
+      setLocalLoading(true);
+      const { data } = await axios.put(
+        `${server}/user/update-user-status/${userId}`,
+        { isActive: status },
+        { withCredentials: true }
+      );
+      
+      if (data.success) {
+        toast.success(`User ${status ? 'activated' : 'suspended'} successfully!`);
+        loadData(); // Refresh all data
+      } else {
+        toast.error(data.message || "Failed to update user status");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update user status");
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     } finally {
       setLocalLoading(false);
     }
@@ -306,6 +360,7 @@ const AllUsers = () => {
     loadData();
   };
 
+<<<<<<< HEAD
   // Custom status badge component with colors
   const StatusBadge = ({ isActive, reason }) => {
     if (isActive) {
@@ -335,6 +390,8 @@ const AllUsers = () => {
     }
   };
 
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   const columns = [
     { 
       field: "id", 
@@ -352,6 +409,7 @@ const AllUsers = () => {
       headerName: "Name",
       minWidth: 150,
       flex: 0.7,
+<<<<<<< HEAD
       renderCell: (params) => {
         const isActive = params.row.isActive !== false;
         return (
@@ -360,12 +418,15 @@ const AllUsers = () => {
           </span>
         );
       }
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     },
     {
       field: "email",
       headerName: "Email",
       minWidth: 180,
       flex: 0.8,
+<<<<<<< HEAD
       renderCell: (params) => {
         const isActive = params.row.isActive !== false;
         return (
@@ -374,6 +435,8 @@ const AllUsers = () => {
           </span>
         );
       }
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     },
     {
       field: "role",
@@ -382,10 +445,14 @@ const AllUsers = () => {
       flex: 0.5,
       renderCell: (params) => {
         const role = params.value || 'user';
+<<<<<<< HEAD
         const isActive = params.row.isActive !== false;
         
         const getRoleColor = () => {
           if (!isActive) return 'bg-gray-200 text-gray-600 border border-gray-300';
+=======
+        const getRoleColor = () => {
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
           switch(role) {
             case 'admin': return 'bg-red-100 text-red-800 border border-red-200';
             case 'seller': return 'bg-blue-100 text-blue-800 border border-blue-200';
@@ -403,11 +470,27 @@ const AllUsers = () => {
     {
       field: "status",
       headerName: "Status",
+<<<<<<< HEAD
       minWidth: 180,
       flex: 0.8,
       renderCell: (params) => {
         const isActive = params.row.isActive !== false;
         return <StatusBadge isActive={isActive} reason={params.row.suspensionReason} />;
+=======
+      minWidth: 120,
+      flex: 0.5,
+      renderCell: (params) => {
+        const isActive = params.row.isActive !== false;
+        return (
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+            isActive 
+              ? 'bg-green-100 text-green-800 border border-green-200' 
+              : 'bg-red-100 text-red-800 border border-red-200'
+          }`}>
+            {isActive ? 'Active' : 'Suspended'}
+          </span>
+        );
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
       },
     },
     {
@@ -422,8 +505,13 @@ const AllUsers = () => {
     {
       field: "actions",
       headerName: "Actions",
+<<<<<<< HEAD
       minWidth: 320,
       flex: 1.2,
+=======
+      minWidth: 280,
+      flex: 1,
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
       sortable: false,
       renderCell: (params) => {
         const user = params.row;
@@ -453,6 +541,7 @@ const AllUsers = () => {
               </IconButton>
             )}
             
+<<<<<<< HEAD
             {isActive ? (
               <Button
                 variant="outlined"
@@ -478,6 +567,18 @@ const AllUsers = () => {
                 Activate
               </Button>
             )}
+=======
+            <Button
+              variant="outlined"
+              size="small"
+              color={isActive ? "secondary" : "primary"}
+              onClick={() => handleSuspendUser(user.id, !isActive)}
+              disabled={localLoading}
+              className="text-xs"
+            >
+              {isActive ? 'Suspend' : 'Activate'}
+            </Button>
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
             
             <IconButton
               size="small"
@@ -486,10 +587,17 @@ const AllUsers = () => {
                 setOpen(true);
               }}
               title="Delete User"
+<<<<<<< HEAD
               disabled={localLoading || user.role === 'admin'}
               className={`hover:bg-red-50 ${user.role === 'admin' ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <AiOutlineDelete className={`${user.role === 'admin' ? 'text-gray-400' : 'text-red-600'}`} />
+=======
+              disabled={localLoading}
+              className="hover:bg-red-50"
+            >
+              <AiOutlineDelete className="text-red-600" />
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
             </IconButton>
           </div>
         );
@@ -505,9 +613,14 @@ const AllUsers = () => {
         name: item.name || 'No Name',
         email: item.email || 'No Email',
         role: item.role || 'user',
+<<<<<<< HEAD
         isActive: item.isActive !== false,
         suspensionReason: item.suspensionReason || '',
         createdAt: item.createdAt,
+=======
+        isActive: item.isActive,
+        createdAt: item.createdAt, // Keep original for formatting
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
         joinedAt: formatDate(item.createdAt)
       });
     });
@@ -526,6 +639,7 @@ const AllUsers = () => {
               <p className="text-xl font-bold text-blue-600">{users?.length || 0}</p>
             </div>
             <div className="px-4 py-2 bg-green-50 rounded-lg border border-green-100">
+<<<<<<< HEAD
               <p className="text-sm text-gray-600 flex items-center gap-1">
                 <AiOutlineCheckCircle className="text-green-600" /> Active
               </p>
@@ -539,6 +653,11 @@ const AllUsers = () => {
               </p>
               <p className="text-xl font-bold text-red-600">
                 {users?.filter(u => u.isActive === false).length || 0}
+=======
+              <p className="text-sm text-gray-600">Sellers</p>
+              <p className="text-xl font-bold text-green-600">
+                {users?.filter(u => u.role === 'seller').length || 0}
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
               </p>
             </div>
             <Button
@@ -633,12 +752,18 @@ const AllUsers = () => {
               disableSelectionOnClick
               autoHeight
               loading={usersLoading}
+<<<<<<< HEAD
               getRowClassName={(params) => {
                 if (params.row.role === 'admin') return 'bg-red-50 hover:bg-red-100';
                 if (params.row.isActive === false) return 'bg-red-50/30 hover:bg-red-100/50 border-l-4 border-l-red-400';
                 if (params.row.isActive !== false) return 'bg-green-50/30 hover:bg-green-100/50 border-l-4 border-l-green-400';
                 return 'hover:bg-gray-50';
               }}
+=======
+              getRowClassName={(params) => 
+                `hover:bg-gray-50 ${params.row.role === 'admin' ? 'bg-red-50' : ''}`
+              }
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
               sx={{
                 '& .MuiDataGrid-columnHeaders': {
                   backgroundColor: '#f9fafb',
@@ -647,14 +772,18 @@ const AllUsers = () => {
                 '& .MuiDataGrid-cell': {
                   borderBottom: '1px solid #f3f4f6',
                 },
+<<<<<<< HEAD
                 '& .MuiDataGrid-row': {
                   transition: 'all 0.2s',
                 },
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
               }}
             />
           </div>
         )}
 
+<<<<<<< HEAD
         {/* Delete Confirmation Modal */}
         {open && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -900,6 +1029,10 @@ const AllUsers = () => {
             </div>
           </div>
         )}
+=======
+        {/* Rest of the modals remain the same */}
+        {/* ... */}
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
       </div>
     </div>
   );

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // App.js - Updated with consistent route pattern
+=======
+// App.js - Updated version
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import Store from "./redux/store";
@@ -24,8 +28,11 @@ import {
   TrackOrderPage,
   UserInbox,
 } from "./routes/Routes";
+<<<<<<< HEAD
 
 // Import all Shop routes - INCLUDING ShopAutoFetchProducts
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 import {
   ShopDashboardPage,
   ShopCreateProduct,
@@ -40,7 +47,10 @@ import {
   ShopSettingsPage,
   ShopWithDrawMoneyPage,
   ShopInboxPage,
+<<<<<<< HEAD
   ShopAutoFetchProducts, // ✅ ADD THIS - Import the wrapper component
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 } from "./routes/ShopRoutes";
 
 import {
@@ -53,9 +63,12 @@ import {
   AdminDashboardWithdraw,
 } from "./routes/AdminRoutes";
 
+<<<<<<< HEAD
 // ❌ REMOVE this line - Don't import AutoFetchProducts directly
 // import AutoFetchProducts from "../src/components/Shop/AutoFetchProducts";
 
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { loadSeller, loadUser } from "./redux/actions/user";
@@ -83,11 +96,19 @@ const App = () => {
         setStripeApiKey(data.stripeApikey);
       } else {
         console.warn("No Stripe API key in response");
+<<<<<<< HEAD
+=======
+        // Use a test key for development
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
         setStripeApiKey("pk_test_51PBCzOSBRg78Lshs48jS0Lc7nI1LcY0JXpyZgS7vRgpqxR4o5SgQT2kS7Y5Qp9oU7X2F1h5rV8eKfG3tBwNlZ00");
       }
     } catch (error) {
       console.error("Error fetching Stripe API key:", error);
       toast.error("Payment system is temporarily unavailable. Using demo mode.");
+<<<<<<< HEAD
+=======
+      // Fallback to test key
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
       setStripeApiKey("pk_test_51PBCzOSBRg78Lshs48jS0Lc7nI1LcY0JXpyZgS7vRgpqxR4o5SgQT2kS7Y5Qp9oU7X2F1h5rV8eKfG3tBwNlZ00");
     } finally {
       setStripeLoading(false);
@@ -221,8 +242,12 @@ const App = () => {
         />
 
         <Route path="/shop/preview/:id" element={<ShopPreviewPage />} />
+<<<<<<< HEAD
         
         {/* Shop Routes */}
+=======
+        {/* shop Routes */}
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
         <Route path="/shop-create" element={<ShopCreatePage />} />
         <Route path="/shop-login" element={<ShopLoginPage />} />
         <Route
@@ -243,7 +268,10 @@ const App = () => {
           }
         />
 
+<<<<<<< HEAD
         {/* Dashboard Routes - All use the same pattern */}
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
         <Route
           path="/dashboard"
           element={
@@ -252,7 +280,10 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
+<<<<<<< HEAD
         
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
         <Route
           path="/dashboard-create-product"
           element={
@@ -262,6 +293,7 @@ const App = () => {
           }
         />
 
+<<<<<<< HEAD
         {/* ✅ FIXED: Auto-Fetch Products - Using the WRAPPER component with header and sidebar */}
         <Route
           path="/dashboard-auto-fetch"
@@ -272,6 +304,8 @@ const App = () => {
           }
         />
 
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
         <Route
           path="/dashboard-orders"
           element={
@@ -334,7 +368,10 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
+<<<<<<< HEAD
         
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
         <Route
           path="/dashboard-events"
           element={
@@ -343,7 +380,10 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
+<<<<<<< HEAD
         
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
         <Route
           path="/dashboard-coupouns"
           element={

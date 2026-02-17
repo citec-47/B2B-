@@ -11,7 +11,11 @@ const ShopLoginPage = () => {
         if (isSeller === true) {
             navigate(`/dashboard`);
         }
+<<<<<<< HEAD
     }, [isLoading, isSeller, navigate]); // Added navigate to dependency array
+=======
+    }, [isLoading, isSeller])
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     return (
         <div>
             <ShopLogin />
@@ -19,4 +23,8 @@ const ShopLoginPage = () => {
     )
 }
 
+<<<<<<< HEAD
 export default ShopLoginPage;
+=======
+export default ShopLoginPage
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31

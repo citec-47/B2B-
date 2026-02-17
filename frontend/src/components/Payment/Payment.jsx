@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // Components/Payment/Payment.jsx - COMPLETE UPDATED VERSION WITH FIRESTORE ERROR FIX
+=======
+// Components/Payment/Payment.jsx - COMPLETE UPDATED VERSION WITH FIXED AUTH
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -54,6 +58,7 @@ const Payment = () => {
         return config;
     };
 
+<<<<<<< HEAD
     // Helper function to validate and fix cart items
     const validateAndFixCartItems = (cart) => {
         if (!cart || !Array.isArray(cart)) return [];
@@ -161,6 +166,8 @@ const Payment = () => {
         return order;
     };
 
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     useEffect(() => {
         console.log('🔐 Payment - Starting authentication check');
         
@@ -220,6 +227,7 @@ const Payment = () => {
                         return;
                     }
                     
+<<<<<<< HEAD
                     // Validate and fix cart items
                     const fixedCart = validateAndFixCartItems(parsedOrder.cart);
                     
@@ -232,6 +240,14 @@ const Payment = () => {
                     // Update parsedOrder with fixed cart
                     parsedOrder.cart = fixedCart;
                     
+=======
+                    if (!parsedOrder.totalPrice || parsedOrder.totalPrice <= 0) {
+                        toast.error("Invalid order total. Please try again.");
+                        navigate("/checkout");
+                        return;
+                    }
+                    
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                     // Validate shipping address
                     if (!parsedOrder.shippingAddress || !parsedOrder.shippingAddress.address1) {
                         toast.error("Shipping address is required.");
@@ -256,7 +272,11 @@ const Payment = () => {
 
             fetchOrderData();
         }
+<<<<<<< HEAD
     }, [navigate, user]);
+=======
+    }, [navigate, user]); // Add user to dependencies
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 
     // PayPal order creation
     const createOrder = (data, actions) => {
@@ -306,7 +326,11 @@ const Payment = () => {
         });
     };
 
+<<<<<<< HEAD
     // PayPal payment handler - FIXED
+=======
+    // PayPal payment handler
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     const paypalPaymentHandler = async (paymentInfo) => {
         setPaymentLoading(true);
         
@@ -321,6 +345,7 @@ const Payment = () => {
         
         const config = createAxiosConfig();
         
+<<<<<<< HEAD
         // Prepare order object with PayPal payment info
         const order = prepareOrderObject({
             id: paymentInfo.payer_id,
@@ -332,6 +357,22 @@ const Payment = () => {
             setPaymentLoading(false);
             return;
         }
+=======
+        const order = {
+            cart: orderData?.cart || [],
+            shippingAddress: orderData?.shippingAddress || {},
+            user: user || {},
+            totalPrice: orderData?.totalPrice || 0,
+            subTotalPrice: orderData?.subTotalPrice || 0,
+            shipping: orderData?.shipping || 0,
+            discountPrice: orderData?.discountPrice || 0,
+            paymentInfo: {
+                id: paymentInfo.payer_id,
+                status: "succeeded",
+                type: "Paypal",
+            },
+        };
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 
         try {
             console.log("📤 Sending PayPal order:", order);
@@ -361,7 +402,11 @@ const Payment = () => {
         }
     };
 
+<<<<<<< HEAD
     // Stripe card payment handler - FIXED
+=======
+    // Stripe card payment handler
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     const paymentHandler = async (e) => {
         e.preventDefault();
         console.log('💳 Stripe payment handler triggered');
@@ -424,6 +469,7 @@ const Payment = () => {
                 setPaymentLoading(false);
             } else {
                 if (result.paymentIntent.status === "succeeded") {
+<<<<<<< HEAD
                     // Prepare order object with Stripe payment info
                     const order = prepareOrderObject({
                         id: result.paymentIntent.id,
@@ -435,6 +481,22 @@ const Payment = () => {
                         setPaymentLoading(false);
                         return;
                     }
+=======
+                    const order = {
+                        cart: orderData?.cart || [],
+                        shippingAddress: orderData?.shippingAddress || {},
+                        user: user || {},
+                        totalPrice: orderData?.totalPrice || 0,
+                        subTotalPrice: orderData?.subTotalPrice || 0,
+                        shipping: orderData?.shipping || 0,
+                        discountPrice: orderData?.discountPrice || 0,
+                        paymentInfo: {
+                            id: result.paymentIntent.id,
+                            status: result.paymentIntent.status,
+                            type: "Credit Card",
+                        },
+                    };
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 
                     console.log("📤 Sending card order:", order);
                     
@@ -471,7 +533,11 @@ const Payment = () => {
         }
     };
 
+<<<<<<< HEAD
     // Cash on Delivery handler - FIXED
+=======
+    // Cash on Delivery handler
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     const cashOnDeliveryHandler = async (e) => {
         e.preventDefault();
         console.log('💰 COD payment handler triggered');
@@ -487,6 +553,7 @@ const Payment = () => {
 
         const config = createAxiosConfig();
 
+<<<<<<< HEAD
         // Prepare order object with COD payment info
         const order = prepareOrderObject();
 
@@ -494,6 +561,21 @@ const Payment = () => {
             setPaymentLoading(false);
             return;
         }
+=======
+        const order = {
+            cart: orderData?.cart || [],
+            shippingAddress: orderData?.shippingAddress || {},
+            user: user || {},
+            totalPrice: orderData?.totalPrice || 0,
+            subTotalPrice: orderData?.subTotalPrice || 0,
+            shipping: orderData?.shipping || 0,
+            discountPrice: orderData?.discountPrice || 0,
+            paymentInfo: {
+                type: "Cash On Delivery",
+                status: "Pending"
+            },
+        };
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 
         try {
             console.log("📤 Sending COD order:", order);
@@ -600,15 +682,23 @@ const Payment = () => {
             {/* Debug info (remove in production) */}
             {process.env.NODE_ENV === 'development' && (
                 <div className="mt-8 p-4 bg-gray-100 rounded-lg text-sm">
+<<<<<<< HEAD
                     <p className="font-medium mb-2">🔧 Debug Info:</p>
+=======
+                    <p className="font-medium mb-2">Debug Info:</p>
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                     <p>User ID: {user?._id || 'No ID'}</p>
                     <p>User Name: {user?.name || 'No Name'}</p>
                     <p>User Authenticated: {user?.isAuthenticated ? '✅ Yes' : '❌ No'}</p>
                     <p>Order Items: {orderData?.cart?.length || 0}</p>
+<<<<<<< HEAD
                     <p>Valid Items: {orderData?.cart?.filter(item => item.shopId).length || 0}</p>
                     <p>Invalid Items: {orderData?.cart?.filter(item => !item.shopId).length || 0}</p>
                     <p>Total: ${orderData?.totalPrice || 0}</p>
                     <p>Unique Shops: {[...new Set(orderData?.cart?.map(item => item.shopId).filter(Boolean))].length || 0}</p>
+=======
+                    <p>Total: ${orderData?.totalPrice || 0}</p>
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                 </div>
             )}
         </div>

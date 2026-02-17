@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 // redux/actions/user.js
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 import axios from "axios";
 import { server } from "../../server";
 
@@ -11,6 +14,7 @@ export const loadUser = () => async (dispatch) => {
     const { data } = await axios.get(`${server}/user/getuser`, {
       withCredentials: true,
     });
+<<<<<<< HEAD
     
     // Check if user is suspended
     if (data.user?.isSuspended) {
@@ -24,11 +28,14 @@ export const loadUser = () => async (dispatch) => {
       return;
     }
     
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     dispatch({
       type: "LoadUserSuccess",
       payload: data.user,
     });
   } catch (error) {
+<<<<<<< HEAD
     // Handle suspension error from backend
     if (error.response?.status === 403 && error.response?.data?.isSuspended) {
       dispatch({
@@ -41,6 +48,12 @@ export const loadUser = () => async (dispatch) => {
         payload: error.response?.data?.message || error.message,
       });
     }
+=======
+    dispatch({
+      type: "LoadUserFail",
+      payload: error.response?.data?.message || error.message,
+    });
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   }
 };
 
@@ -53,6 +66,7 @@ export const loadSeller = () => async (dispatch) => {
     const { data } = await axios.get(`${server}/shop/getSeller`, {
       withCredentials: true,
     });
+<<<<<<< HEAD
     
     // Check if seller is suspended
     if (data.seller?.isSuspended) {
@@ -66,11 +80,14 @@ export const loadSeller = () => async (dispatch) => {
       return;
     }
     
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     dispatch({
       type: "LoadSellerSuccess",
       payload: data.seller,
     });
   } catch (error) {
+<<<<<<< HEAD
     if (error.response?.status === 403 && error.response?.data?.isSuspended) {
       dispatch({
         type: "SellerSuspended",
@@ -82,6 +99,12 @@ export const loadSeller = () => async (dispatch) => {
         payload: error.response?.data?.message || error.message,
       });
     }
+=======
+    dispatch({
+      type: "LoadSellerFail",
+      payload: error.response?.data?.message || error.message,
+    });
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   }
 };
 
@@ -94,6 +117,7 @@ export const loadAdmin = () => async (dispatch) => {
     const { data } = await axios.get(`${server}/user/getuser`, {
       withCredentials: true,
     });
+<<<<<<< HEAD
     
     // Check if admin is suspended
     if (data.user?.isSuspended) {
@@ -107,11 +131,14 @@ export const loadAdmin = () => async (dispatch) => {
       return;
     }
     
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     dispatch({
       type: "LoadAdminSuccess",
       payload: data.user,
     });
   } catch (error) {
+<<<<<<< HEAD
     if (error.response?.status === 403 && error.response?.data?.isSuspended) {
       dispatch({
         type: "AdminSuspended",
@@ -123,6 +150,12 @@ export const loadAdmin = () => async (dispatch) => {
         payload: error.response?.data?.message || error.message,
       });
     }
+=======
+    dispatch({
+      type: "LoadAdminFail",
+      payload: error.response?.data?.message || error.message,
+    });
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   }
 };
 
@@ -137,6 +170,7 @@ export const loginUser = (email, password) => async (dispatch) => {
       { email, password },
       { withCredentials: true }
     );
+<<<<<<< HEAD
     
     // Check if user is suspended
     if (data.user?.isSuspended) {
@@ -150,12 +184,15 @@ export const loginUser = (email, password) => async (dispatch) => {
       return { success: false, error: "Account suspended", isSuspended: true };
     }
     
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     dispatch({
       type: "UserLoginSuccess",
       payload: data.user,
     });
     return { success: true, data: data.user };
   } catch (error) {
+<<<<<<< HEAD
     // Check if error is due to suspension
     if (error.response?.status === 403 && error.response?.data?.isSuspended) {
       dispatch({
@@ -168,6 +205,8 @@ export const loginUser = (email, password) => async (dispatch) => {
       return { success: false, error: "Account suspended", isSuspended: true };
     }
     
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     dispatch({
       type: "UserLoginFail",
       payload: error.response?.data?.message || error.message,
@@ -187,6 +226,7 @@ export const loginSeller = (email, password) => async (dispatch) => {
       { email, password },
       { withCredentials: true }
     );
+<<<<<<< HEAD
     
     // Check if seller is suspended
     if (data.seller?.isSuspended) {
@@ -200,12 +240,15 @@ export const loginSeller = (email, password) => async (dispatch) => {
       return { success: false, error: "Account suspended", isSuspended: true };
     }
     
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     dispatch({
       type: "SellerLoginSuccess",
       payload: data.seller,
     });
     return { success: true, data: data.seller };
   } catch (error) {
+<<<<<<< HEAD
     // Check if error is due to suspension
     if (error.response?.status === 403 && error.response?.data?.isSuspended) {
       dispatch({
@@ -218,6 +261,8 @@ export const loginSeller = (email, password) => async (dispatch) => {
       return { success: false, error: "Account suspended", isSuspended: true };
     }
     
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     dispatch({
       type: "SellerLoginFail",
       payload: error.response?.data?.message || error.message,
@@ -246,6 +291,7 @@ export const updateUserInformation =
           withCredentials: true,
         }
       );
+<<<<<<< HEAD
       
       // Check if user is suspended after update
       if (data.user?.isSuspended) {
@@ -259,11 +305,14 @@ export const updateUserInformation =
         return;
       }
       
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
       dispatch({
         type: "updateUserInfoSuccess",
         payload: data.user,
       });
     } catch (error) {
+<<<<<<< HEAD
       if (error.response?.status === 403 && error.response?.data?.isSuspended) {
         dispatch({
           type: "UserSuspended",
@@ -275,6 +324,12 @@ export const updateUserInformation =
           payload: error.response?.data?.message || error.message,
         });
       }
+=======
+      dispatch({
+        type: "updateUserInfoFailed",
+        payload: error.response?.data?.message || error.message,
+      });
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     }
   };
 
@@ -300,6 +355,7 @@ export const updatUserAddress =
         { withCredentials: true }
       );
 
+<<<<<<< HEAD
       // Check if user is suspended after update
       if (data.user?.isSuspended) {
         dispatch({
@@ -312,6 +368,8 @@ export const updatUserAddress =
         return;
       }
 
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
       dispatch({
         type: "updateUserAddressSuccess",
         payload: {
@@ -320,6 +378,7 @@ export const updatUserAddress =
         },
       });
     } catch (error) {
+<<<<<<< HEAD
       if (error.response?.status === 403 && error.response?.data?.isSuspended) {
         dispatch({
           type: "UserSuspended",
@@ -331,6 +390,12 @@ export const updatUserAddress =
           payload: error.response?.data?.message || error.message,
         });
       }
+=======
+      dispatch({
+        type: "updateUserAddressFailed",
+        payload: error.response?.data?.message || error.message,
+      });
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     }
   };
 
@@ -346,6 +411,7 @@ export const deleteUserAddress = (id) => async (dispatch) => {
       { withCredentials: true }
     );
 
+<<<<<<< HEAD
     // Check if user is suspended after delete
     if (data.user?.isSuspended) {
       dispatch({
@@ -358,6 +424,8 @@ export const deleteUserAddress = (id) => async (dispatch) => {
       return;
     }
 
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     dispatch({
       type: "deleteUserAddressSuccess",
       payload: {
@@ -366,6 +434,7 @@ export const deleteUserAddress = (id) => async (dispatch) => {
       },
     });
   } catch (error) {
+<<<<<<< HEAD
     if (error.response?.status === 403 && error.response?.data?.isSuspended) {
       dispatch({
         type: "UserSuspended",
@@ -377,6 +446,12 @@ export const deleteUserAddress = (id) => async (dispatch) => {
         payload: error.response?.data?.message || error.message,
       });
     }
+=======
+    dispatch({
+      type: "deleteUserAddressFailed",
+      payload: error.response?.data?.message || error.message,
+    });
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   }
 };
 
@@ -403,6 +478,7 @@ export const getAllUsers = () => async (dispatch) => {
   }
 };
 
+<<<<<<< HEAD
 // Admin: Suspend user
 export const suspendUser = (userId, reason) => async (dispatch) => {
   try {
@@ -463,6 +539,8 @@ export const unsuspendUser = (userId) => async (dispatch) => {
   }
 };
 
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 // Logout all roles
 export const logoutUser = () => async (dispatch) => {
   try {
@@ -470,15 +548,19 @@ export const logoutUser = () => async (dispatch) => {
       withCredentials: true,
     });
     
+<<<<<<< HEAD
     // Clear all tokens
     localStorage.removeItem('user_token');
     localStorage.removeItem('seller_token');
     localStorage.removeItem('admin_token');
     
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     dispatch({
       type: "LogoutSuccess",
     });
   } catch (error) {
+<<<<<<< HEAD
     // Even if API fails, clear local state
     localStorage.removeItem('user_token');
     localStorage.removeItem('seller_token');
@@ -486,6 +568,11 @@ export const logoutUser = () => async (dispatch) => {
     
     dispatch({
       type: "LogoutSuccess",
+=======
+    dispatch({
+      type: "LogoutFail",
+      payload: error.response?.data?.message || error.message,
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     });
   }
 };

@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 // src/components/Shop/Layout/DashboardHeader.jsx
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 import React from "react";
 import { AiOutlineGift } from "react-icons/ai";
 import { MdOutlineLocalOffer } from "react-icons/md";
 import { FiPackage, FiShoppingBag } from "react-icons/fi";
+<<<<<<< HEAD
 import { FaRobot } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
@@ -49,11 +53,50 @@ const DashboardHeader = () => {
         return `${backend_url}/uploads/${cleanImage}`;
     };
 
+=======
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { BiMessageSquareDetail } from "react-icons/bi";
+import { backend_url } from "../../../server";
+
+const DashboardHeader = () => {
+    const { seller } = useSelector((state) => state.seller);
+    
+    // Function to get correct image URL - same as in ShopInfo
+    const getImageUrl = (image) => {
+        if (!image) {
+            return "https://via.placeholder.com/150x150?text=No+Shop+Image";
+        }
+        
+        if (typeof image === 'string') {
+            // Already a full URL
+            if (image.startsWith("http")) {
+                return image;
+            }
+            
+            // Clean the filename
+            const cleanImage = image.replace(/^\/+/, '');
+            
+            // If it's already in uploads/ path
+            if (cleanImage.startsWith('uploads/')) {
+                return `${backend_url}/${cleanImage}`;
+            }
+            
+            // If it's just a filename
+            return `${backend_url}/uploads/${cleanImage}`;
+        }
+        
+        return "https://via.placeholder.com/150x150?text=Image+Error";
+    };
+
+    // Handle image error
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     const handleImageError = (e) => {
         e.target.onerror = null;
         e.target.src = "https://via.placeholder.com/50x50?text=Shop";
     };
 
+<<<<<<< HEAD
     // If suspended, show the suspension UI immediately
     if (isSuspended) {
         return (
@@ -78,6 +121,8 @@ const DashboardHeader = () => {
     }
 
     // Normal header for active sellers
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     return (
         <div className="w-full h-[80px] bg-white shadow sticky top-0 left-0 z-30 flex items-center justify-between px-4">
             <div>
@@ -85,12 +130,16 @@ const DashboardHeader = () => {
                     <img
                         src="https://shopo.quomodothemes.website/assets/images/logo.svg"
                         alt="Shop Logo"
+<<<<<<< HEAD
                         className="h-10"
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                     />
                 </Link>
             </div>
             <div className="flex items-center">
                 <div className="flex items-center mr-4">
+<<<<<<< HEAD
                     <Link to="/dashboard-auto-fetch" className="800px:block hidden relative group">
                         <div className="relative">
                             <FaRobot
@@ -105,57 +154,99 @@ const DashboardHeader = () => {
                         </div>
                     </Link>
 
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                     <Link to="/dashboard/coupons" className="800px:block hidden">
                         <AiOutlineGift
                             color="#555"
                             size={30}
+<<<<<<< HEAD
                             className="mx-5 cursor-pointer hover:text-[crimson] transition-colors"
                             title="Coupons"
                         />
                     </Link>
                     
+=======
+                            className="mx-5 cursor-pointer"
+                            title="Coupons"
+                        />
+                    </Link>
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                     <Link to="/dashboard-events" className="800px:block hidden">
                         <MdOutlineLocalOffer
                             color="#555"
                             size={30}
+<<<<<<< HEAD
                             className="mx-5 cursor-pointer hover:text-[crimson] transition-colors"
                             title="Events"
                         />
                     </Link>
                     
+=======
+                            className="mx-5 cursor-pointer"
+                            title="Events"
+                        />
+                    </Link>
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                     <Link to="/dashboard-products" className="800px:block hidden">
                         <FiShoppingBag
                             color="#555"
                             size={30}
+<<<<<<< HEAD
                             className="mx-5 cursor-pointer hover:text-[crimson] transition-colors"
                             title="Products"
                         />
                     </Link>
                     
+=======
+                            className="mx-5 cursor-pointer"
+                            title="Products"
+                        />
+                    </Link>
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                     <Link to="/dashboard-orders" className="800px:block hidden">
                         <FiPackage 
                             color="#555" 
                             size={30} 
+<<<<<<< HEAD
                             className="mx-5 cursor-pointer hover:text-[crimson] transition-colors"
                             title="Orders"
                         />
                     </Link>
                     
+=======
+                            className="mx-5 cursor-pointer" 
+                            title="Orders"
+                        />
+                    </Link>
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                     <Link to="/dashboard-messages" className="800px:block hidden">
                         <BiMessageSquareDetail
                             color="#555"
                             size={30}
+<<<<<<< HEAD
                             className="mx-5 cursor-pointer hover:text-[crimson] transition-colors"
+=======
+                            className="mx-5 cursor-pointer"
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                             title="Messages"
                         />
                     </Link>
                     
+<<<<<<< HEAD
+=======
+                    {/* Seller Avatar */}
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                     {seller && seller._id ? (
                         <Link to={`/shop/${seller._id}`}>
                             <img
                                 src={getImageUrl(seller.avatar)}
                                 alt={seller.name || "Seller"}
+<<<<<<< HEAD
                                 className="w-[50px] h-[50px] rounded-full object-cover border-2 border-gray-200 hover:border-[crimson] transition-colors"
+=======
+                                className="w-[50px] h-[50px] rounded-full object-cover border-2 border-gray-200"
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
                                 onError={handleImageError}
                             />
                         </Link>

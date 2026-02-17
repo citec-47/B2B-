@@ -50,12 +50,15 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+<<<<<<< HEAD
   // ADD THIS STATUS FIELD
   status: {
     type: String,
     enum: ['active', 'suspended'],
     default: 'active'
   },
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   createdAt: {
     type: Date,
     default: Date.now(),
@@ -64,11 +67,19 @@ const userSchema = new mongoose.Schema({
   resetPasswordTime: Date,
 });
 
+<<<<<<< HEAD
 // Hash password
+=======
+//  Hash password
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     next();
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   this.password = await bcrypt.hash(this.password, 10);
 });
 
@@ -84,4 +95,8 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+<<<<<<< HEAD
 module.exports = mongoose.model("User", userSchema);
+=======
+module.exports = mongoose.model("User", userSchema);
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31

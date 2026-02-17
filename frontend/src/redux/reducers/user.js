@@ -5,10 +5,13 @@ const initialState = {
   isLoading: true,
   user: null,
   error: null,
+<<<<<<< HEAD
   // Suspension
   isSuspended: false,
   suspensionReason: null,
   suspensionMessage: null,
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   // Role flags
   isAdmin: false,
   isSeller: false,
@@ -16,24 +19,33 @@ const initialState = {
   // Users for admin
   users: [],
   usersLoading: false,
+<<<<<<< HEAD
   successMessage: null,
   addressloading: false,
   loading: false,
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 };
 
 export const userReducer = createReducer(initialState, {
   // User Login
   UserLoginRequest: (state) => {
     state.loading = true;
+<<<<<<< HEAD
     state.isSuspended = false;
     state.suspensionMessage = null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
   UserLoginSuccess: (state, action) => {
     state.isAuthenticated = true;
     state.loading = false;
     state.user = action.payload;
+<<<<<<< HEAD
     state.isSuspended = action.payload?.isSuspended || false;
     state.suspensionReason = action.payload?.suspensionReason || null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     // Set role flags
     state.isAdmin = action.payload?.role === 'admin' || action.payload?.isAdmin === true;
     state.isSeller = action.payload?.role === 'seller' || action.payload?.isSeller === true;
@@ -44,12 +56,16 @@ export const userReducer = createReducer(initialState, {
     state.loading = false;
     state.error = action.payload;
     state.isAuthenticated = false;
+<<<<<<< HEAD
     state.isSuspended = false;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     state.isAdmin = false;
     state.isSeller = false;
     state.isUser = false;
   },
 
+<<<<<<< HEAD
   // User Suspended
   UserSuspended: (state, action) => {
     state.isAuthenticated = false;
@@ -100,13 +116,21 @@ export const userReducer = createReducer(initialState, {
     state.loading = true;
     state.isSuspended = false;
     state.suspensionMessage = null;
+=======
+  // Seller Login
+  SellerLoginRequest: (state) => {
+    state.loading = true;
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
   SellerLoginSuccess: (state, action) => {
     state.isAuthenticated = true;
     state.loading = false;
     state.user = action.payload;
+<<<<<<< HEAD
     state.isSuspended = action.payload?.isSuspended || false;
     state.suspensionReason = action.payload?.suspensionReason || null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     state.isAdmin = false;
     state.isSeller = true;
     state.isUser = false;
@@ -117,6 +141,7 @@ export const userReducer = createReducer(initialState, {
     state.error = action.payload;
     state.isAuthenticated = false;
     state.isSeller = false;
+<<<<<<< HEAD
     state.isSuspended = false;
   },
 
@@ -125,13 +150,23 @@ export const userReducer = createReducer(initialState, {
     state.loading = true;
     state.isSuspended = false;
     state.suspensionMessage = null;
+=======
+  },
+
+  // Admin Login (can use UserLoginSuccess as well)
+  AdminLoginRequest: (state) => {
+    state.loading = true;
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
   AdminLoginSuccess: (state, action) => {
     state.isAuthenticated = true;
     state.loading = false;
     state.user = action.payload;
+<<<<<<< HEAD
     state.isSuspended = action.payload?.isSuspended || false;
     state.suspensionReason = action.payload?.suspensionReason || null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     state.isAdmin = true;
     state.isSeller = false;
     state.isUser = false;
@@ -142,21 +177,30 @@ export const userReducer = createReducer(initialState, {
     state.error = action.payload;
     state.isAuthenticated = false;
     state.isAdmin = false;
+<<<<<<< HEAD
     state.isSuspended = false;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
 
   // Load User
   LoadUserRequest: (state) => {
     state.isLoading = true;
+<<<<<<< HEAD
     state.isSuspended = false;
     state.suspensionMessage = null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
   LoadUserSuccess: (state, action) => {
     state.isAuthenticated = true;
     state.isLoading = false;
     state.user = action.payload;
+<<<<<<< HEAD
     state.isSuspended = action.payload?.isSuspended || false;
     state.suspensionReason = action.payload?.suspensionReason || null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     // Set role flags
     state.isAdmin = action.payload?.role === 'admin' || action.payload?.isAdmin === true;
     state.isSeller = action.payload?.role === 'seller' || action.payload?.isSeller === true;
@@ -167,7 +211,10 @@ export const userReducer = createReducer(initialState, {
     state.isLoading = false;
     state.error = action.payload;
     state.isAuthenticated = false;
+<<<<<<< HEAD
     state.isSuspended = false;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     state.isAdmin = false;
     state.isSeller = false;
     state.isUser = false;
@@ -176,15 +223,21 @@ export const userReducer = createReducer(initialState, {
   // Load Seller
   LoadSellerRequest: (state) => {
     state.isLoading = true;
+<<<<<<< HEAD
     state.isSuspended = false;
     state.suspensionMessage = null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
   LoadSellerSuccess: (state, action) => {
     state.isAuthenticated = true;
     state.isLoading = false;
     state.user = action.payload;
+<<<<<<< HEAD
     state.isSuspended = action.payload?.isSuspended || false;
     state.suspensionReason = action.payload?.suspensionReason || null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     state.isAdmin = false;
     state.isSeller = true;
     state.isUser = false;
@@ -195,21 +248,30 @@ export const userReducer = createReducer(initialState, {
     state.error = action.payload;
     state.isAuthenticated = false;
     state.isSeller = false;
+<<<<<<< HEAD
     state.isSuspended = false;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
 
   // Load Admin
   LoadAdminRequest: (state) => {
     state.isLoading = true;
+<<<<<<< HEAD
     state.isSuspended = false;
     state.suspensionMessage = null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
   LoadAdminSuccess: (state, action) => {
     state.isAuthenticated = true;
     state.isLoading = false;
     state.user = action.payload;
+<<<<<<< HEAD
     state.isSuspended = action.payload?.isSuspended || false;
     state.suspensionReason = action.payload?.suspensionReason || null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     state.isAdmin = true;
     state.isSeller = false;
     state.isUser = false;
@@ -220,6 +282,7 @@ export const userReducer = createReducer(initialState, {
     state.error = action.payload;
     state.isAuthenticated = false;
     state.isAdmin = false;
+<<<<<<< HEAD
     state.isSuspended = false;
   },
 
@@ -263,6 +326,8 @@ export const userReducer = createReducer(initialState, {
   UnsuspendUserFail: (state, action) => {
     state.usersLoading = false;
     state.error = action.payload;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
 
   // Update user information
@@ -272,8 +337,11 @@ export const userReducer = createReducer(initialState, {
   updateUserInfoSuccess: (state, action) => {
     state.loading = false;
     state.user = action.payload;
+<<<<<<< HEAD
     state.isSuspended = action.payload?.isSuspended || false;
     state.suspensionReason = action.payload?.suspensionReason || null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     // Update role flags
     state.isAdmin = action.payload?.role === 'admin' || action.payload?.isAdmin === true;
     state.isSeller = action.payload?.role === 'seller' || action.payload?.isSeller === true;
@@ -292,8 +360,11 @@ export const userReducer = createReducer(initialState, {
     state.addressloading = false;
     state.successMessage = action.payload.successMessage;
     state.user = action.payload.user;
+<<<<<<< HEAD
     state.isSuspended = action.payload.user?.isSuspended || false;
     state.suspensionReason = action.payload.user?.suspensionReason || null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     // Update role flags
     state.isAdmin = action.payload.user?.role === 'admin' || action.payload.user?.isAdmin === true;
     state.isSeller = action.payload.user?.role === 'seller' || action.payload.user?.isSeller === true;
@@ -312,8 +383,11 @@ export const userReducer = createReducer(initialState, {
     state.addressloading = false;
     state.successMessage = action.payload.successMessage;
     state.user = action.payload.user;
+<<<<<<< HEAD
     state.isSuspended = action.payload.user?.isSuspended || false;
     state.suspensionReason = action.payload.user?.suspensionReason || null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     // Update role flags
     state.isAdmin = action.payload.user?.role === 'admin' || action.payload.user?.isAdmin === true;
     state.isSeller = action.payload.user?.role === 'seller' || action.payload.user?.isSeller === true;
@@ -344,11 +418,15 @@ export const userReducer = createReducer(initialState, {
   LogoutSuccess: (state) => {
     state.isAuthenticated = false;
     state.isLoading = false;
+<<<<<<< HEAD
     state.loading = false;
     state.user = null;
     state.isSuspended = false;
     state.suspensionReason = null;
     state.suspensionMessage = null;
+=======
+    state.user = null;
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
     state.isAdmin = false;
     state.isSeller = false;
     state.isUser = false;
@@ -358,10 +436,13 @@ export const userReducer = createReducer(initialState, {
   LogoutFail: (state, action) => {
     state.loading = false;
     state.error = action.payload;
+<<<<<<< HEAD
     // Still clear auth state even if API fails
     state.isAuthenticated = false;
     state.user = null;
     state.isSuspended = false;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
 
   clearErrors: (state) => {

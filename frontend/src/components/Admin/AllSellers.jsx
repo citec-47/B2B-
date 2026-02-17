@@ -156,4 +156,8 @@ const AllSellers = () => {
   );
 };
 
+<<<<<<< HEAD
 export default AllSellers;
+=======
+export default AllSellers;
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31

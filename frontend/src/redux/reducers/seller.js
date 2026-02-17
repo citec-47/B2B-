@@ -2,6 +2,7 @@ import { createReducer } from "@reduxjs/toolkit";
 
 const initialState = {
   isLoading: true,
+<<<<<<< HEAD
   isSeller: false,
   seller: null,
   sellers: [],
@@ -9,26 +10,35 @@ const initialState = {
   suspensionReason: null,
   suspensionMessage: null,
   error: null,
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
 };
 
 export const sellerReducer = createReducer(initialState, {
   LoadSellerRequest: (state) => {
     state.isLoading = true;
+<<<<<<< HEAD
     state.isSuspended = false;
     state.suspensionMessage = null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
   LoadSellerSuccess: (state, action) => {
     state.isSeller = true;
     state.isLoading = false;
     state.seller = action.payload;
+<<<<<<< HEAD
     state.isSuspended = action.payload?.isSuspended || false;
     state.suspensionReason = action.payload?.suspensionReason || null;
     state.error = null;
+=======
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   },
   LoadSellerFail: (state, action) => {
     state.isLoading = false;
     state.error = action.payload;
     state.isSeller = false;
+<<<<<<< HEAD
     state.isSuspended = false;
   },
 
@@ -65,6 +75,10 @@ export const sellerReducer = createReducer(initialState, {
   },
 
   // Get all sellers ---admin
+=======
+  },
+  // get all sellers ---admin
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
   getAllSellersRequest: (state) => {
     state.isLoading = true;
   },
@@ -77,6 +91,7 @@ export const sellerReducer = createReducer(initialState, {
     state.error = action.payload;
   },
 
+<<<<<<< HEAD
   // Admin suspend seller
   SuspendSellerRequest: (state) => {
     state.isLoading = true;
@@ -147,3 +162,11 @@ export const sellerReducer = createReducer(initialState, {
     state.error = null;
   },
 });
+=======
+  clearErrors: (state) => {
+    state.error = null;
+  },
+});
+
+// reducer -> logic (state change)
+>>>>>>> c919f67046b679987be15f3bc10759d7a97b1c31
