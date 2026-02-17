@@ -1,4 +1,4 @@
-// App.js - Updated version
+// App.js - Updated with consistent route pattern
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import Store from "./redux/store";
@@ -24,6 +24,8 @@ import {
   TrackOrderPage,
   UserInbox,
 } from "./routes/Routes";
+
+// Import all Shop routes - INCLUDING ShopAutoFetchProducts
 import {
   ShopDashboardPage,
   ShopCreateProduct,
@@ -38,6 +40,7 @@ import {
   ShopSettingsPage,
   ShopWithDrawMoneyPage,
   ShopInboxPage,
+  ShopAutoFetchProducts, // ✅ ADD THIS - Import the wrapper component
 } from "./routes/ShopRoutes";
 
 import {
@@ -49,6 +52,9 @@ import {
   AdminDashboardEvents,
   AdminDashboardWithdraw,
 } from "./routes/AdminRoutes";
+
+// ❌ REMOVE this line - Don't import AutoFetchProducts directly
+// import AutoFetchProducts from "../src/components/Shop/AutoFetchProducts";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -77,13 +83,11 @@ const App = () => {
         setStripeApiKey(data.stripeApikey);
       } else {
         console.warn("No Stripe API key in response");
-        // Use a test key for development
         setStripeApiKey("pk_test_51PBCzOSBRg78Lshs48jS0Lc7nI1LcY0JXpyZgS7vRgpqxR4o5SgQT2kS7Y5Qp9oU7X2F1h5rV8eKfG3tBwNlZ00");
       }
     } catch (error) {
       console.error("Error fetching Stripe API key:", error);
       toast.error("Payment system is temporarily unavailable. Using demo mode.");
-      // Fallback to test key
       setStripeApiKey("pk_test_51PBCzOSBRg78Lshs48jS0Lc7nI1LcY0JXpyZgS7vRgpqxR4o5SgQT2kS7Y5Qp9oU7X2F1h5rV8eKfG3tBwNlZ00");
     } finally {
       setStripeLoading(false);
@@ -217,7 +221,8 @@ const App = () => {
         />
 
         <Route path="/shop/preview/:id" element={<ShopPreviewPage />} />
-        {/* shop Routes */}
+        
+        {/* Shop Routes */}
         <Route path="/shop-create" element={<ShopCreatePage />} />
         <Route path="/shop-login" element={<ShopLoginPage />} />
         <Route
@@ -238,6 +243,7 @@ const App = () => {
           }
         />
 
+        {/* Dashboard Routes - All use the same pattern */}
         <Route
           path="/dashboard"
           element={
@@ -246,11 +252,22 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
+        
         <Route
           path="/dashboard-create-product"
           element={
             <SellerProtectedRoute>
               <ShopCreateProduct />
+            </SellerProtectedRoute>
+          }
+        />
+
+        {/* ✅ FIXED: Auto-Fetch Products - Using the WRAPPER component with header and sidebar */}
+        <Route
+          path="/dashboard-auto-fetch"
+          element={
+            <SellerProtectedRoute>
+              <ShopAutoFetchProducts /> {/* ✅ Using wrapper component, not raw component */}
             </SellerProtectedRoute>
           }
         />
@@ -317,6 +334,7 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
+        
         <Route
           path="/dashboard-events"
           element={
@@ -325,6 +343,7 @@ const App = () => {
             </SellerProtectedRoute>
           }
         />
+        
         <Route
           path="/dashboard-coupouns"
           element={

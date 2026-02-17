@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { AiOutlinePlusCircle, AiOutlineDelete } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { createProduct } from "../../redux/actions/product";
 import { categoriesData } from "../../static/data";
 import { toast } from "react-toastify";
@@ -108,6 +108,19 @@ const CreateProduct = () => {
 
     return (
         <div className="w-[90%] 800px:w-[70%] bg-white shadow-lg rounded-lg p-6 m-4 overflow-y-auto max-h-[90vh]">
+            {/* Auto-Fetch Button at the top */}
+            <div className="text-center mb-6">
+                <Link to="/dashboard-auto-fetch">
+                    <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition duration-150 font-medium shadow-md flex items-center mx-auto">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Auto-Fetch from AliExpress
+                    </button>
+                </Link>
+                <p className="text-sm text-gray-500 mt-2">Import thousands of products automatically</p>
+            </div>
+
             <h5 className="text-2xl font-semibold font-Poppins text-center text-gray-800 mb-6">
                 Create New Product
             </h5>

@@ -50,6 +50,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  // ADD THIS STATUS FIELD
+  status: {
+    type: String,
+    enum: ['active', 'suspended'],
+    default: 'active'
+  },
   createdAt: {
     type: Date,
     default: Date.now(),
@@ -58,12 +64,11 @@ const userSchema = new mongoose.Schema({
   resetPasswordTime: Date,
 });
 
-//  Hash password
+// Hash password
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     next();
   }
-
   this.password = await bcrypt.hash(this.password, 10);
 });
 

@@ -1,4 +1,4 @@
-// Components/Payment/Payment.jsx - COMPLETE UPDATED VERSION WITH FIXED AUTH
+// Components/Payment/Payment.jsx - COMPLETE UPDATED VERSION WITH FIRESTORE ERROR FIX
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -52,6 +52,113 @@ const Payment = () => {
         });
         
         return config;
+    };
+
+    // Helper function to validate and fix cart items
+    const validateAndFixCartItems = (cart) => {
+        if (!cart || !Array.isArray(cart)) return [];
+        
+        return cart.map(item => {
+            // Ensure item has all required fields
+            const fixedItem = {
+                ...item,
+                _id: item._id || item.id || `temp-${Date.now()}`,
+                name: item.name || 'Product',
+                shopId: item.shopId || item.shop?._id || item.sellerId || '',
+                qty: parseInt(item.qty) || 1,
+                originalPrice: parseFloat(item.originalPrice || item.price || 0),
+                discountPrice: parseFloat(item.discountPrice || item.originalPrice || item.price || 0),
+                images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : ['default-product.jpg']),
+                shop: item.shop || {
+                    _id: item.shopId || '',
+                    name: item.shopName || 'Shop'
+                }
+            };
+            
+            // If shopId is still missing, try to get it from shop object
+            if (!fixedItem.shopId && fixedItem.shop?._id) {
+                fixedItem.shopId = fixedItem.shop._id;
+            }
+            
+            return fixedItem;
+        }).filter(item => {
+            // Filter out items without shopId
+            if (!item.shopId) {
+                console.error('❌ Cart item missing shopId:', item);
+                return false;
+            }
+            return true;
+        });
+    };
+
+    // Helper function to prepare order object
+    const prepareOrderObject = (paymentInfo = null) => {
+        if (!orderData) return null;
+        
+        // Validate and fix cart items
+        const fixedCart = validateAndFixCartItems(orderData.cart);
+        
+        if (fixedCart.length === 0) {
+            toast.error("No valid items in cart. Please check your cart and try again.");
+            return null;
+        }
+        
+        // Ensure user object has all required fields
+        const userObject = {
+            _id: user?._id || user?.id || '',
+            name: user?.name || 'Customer',
+            email: user?.email || '',
+            phone: user?.phoneNumber || user?.phone || ''
+        };
+        
+        // Calculate totals if not present
+        const subtotal = fixedCart.reduce((sum, item) => {
+            const price = parseFloat(item.discountPrice || item.originalPrice || 0);
+            const qty = parseInt(item.qty) || 1;
+            return sum + (price * qty);
+        }, 0);
+        
+        const shipping = parseFloat(orderData.shipping) || 0;
+        const discount = parseFloat(orderData.discountPrice) || 0;
+        const total = subtotal + shipping - discount;
+        
+        // Prepare order object with all required fields
+        const order = {
+            cart: fixedCart,
+            shippingAddress: {
+                address1: orderData.shippingAddress?.address1 || '',
+                address2: orderData.shippingAddress?.address2 || '',
+                city: orderData.shippingAddress?.city || '',
+                state: orderData.shippingAddress?.state || '',
+                country: orderData.shippingAddress?.country || '',
+                zipCode: orderData.shippingAddress?.zipCode || '',
+                phone: orderData.shippingAddress?.phone || userObject.phone || ''
+            },
+            user: userObject,
+            totalPrice: parseFloat(total.toFixed(2)),
+            subTotalPrice: parseFloat(subtotal.toFixed(2)),
+            shipping: parseFloat(shipping.toFixed(2)),
+            discountPrice: parseFloat(discount.toFixed(2)),
+            paymentInfo: paymentInfo || {
+                type: "Cash On Delivery",
+                status: "Pending",
+                id: `COD-${Date.now()}`
+            }
+        };
+
+        // Log the prepared order for debugging
+        console.log('📦 Prepared Order Object:', {
+            cartCount: order.cart.length,
+            totalPrice: order.totalPrice,
+            subtotal: order.subTotalPrice,
+            shipping: order.shipping,
+            discount: order.discountPrice,
+            userId: order.user._id,
+            paymentType: order.paymentInfo.type,
+            shopIds: [...new Set(order.cart.map(item => item.shopId))]
+        });
+
+        return order;
     };
 
     useEffect(() => {
@@ -113,11 +220,17 @@ const Payment = () => {
                         return;
                     }
                     
-                    if (!parsedOrder.totalPrice || parsedOrder.totalPrice <= 0) {
-                        toast.error("Invalid order total. Please try again.");
-                        navigate("/checkout");
+                    // Validate and fix cart items
+                    const fixedCart = validateAndFixCartItems(parsedOrder.cart);
+                    
+                    if (fixedCart.length === 0) {
+                        toast.error("No valid items with shop information found in cart.");
+                        navigate("/cart");
                         return;
                     }
+                    
+                    // Update parsedOrder with fixed cart
+                    parsedOrder.cart = fixedCart;
                     
                     // Validate shipping address
                     if (!parsedOrder.shippingAddress || !parsedOrder.shippingAddress.address1) {
@@ -143,7 +256,7 @@ const Payment = () => {
 
             fetchOrderData();
         }
-    }, [navigate, user]); // Add user to dependencies
+    }, [navigate, user]);
 
     // PayPal order creation
     const createOrder = (data, actions) => {
@@ -193,7 +306,7 @@ const Payment = () => {
         });
     };
 
-    // PayPal payment handler
+    // PayPal payment handler - FIXED
     const paypalPaymentHandler = async (paymentInfo) => {
         setPaymentLoading(true);
         
@@ -208,20 +321,17 @@ const Payment = () => {
         
         const config = createAxiosConfig();
         
-        const order = {
-            cart: orderData?.cart || [],
-            shippingAddress: orderData?.shippingAddress || {},
-            user: user || {},
-            totalPrice: orderData?.totalPrice || 0,
-            subTotalPrice: orderData?.subTotalPrice || 0,
-            shipping: orderData?.shipping || 0,
-            discountPrice: orderData?.discountPrice || 0,
-            paymentInfo: {
-                id: paymentInfo.payer_id,
-                status: "succeeded",
-                type: "Paypal",
-            },
-        };
+        // Prepare order object with PayPal payment info
+        const order = prepareOrderObject({
+            id: paymentInfo.payer_id,
+            status: "succeeded",
+            type: "Paypal",
+        });
+
+        if (!order) {
+            setPaymentLoading(false);
+            return;
+        }
 
         try {
             console.log("📤 Sending PayPal order:", order);
@@ -251,7 +361,7 @@ const Payment = () => {
         }
     };
 
-    // Stripe card payment handler
+    // Stripe card payment handler - FIXED
     const paymentHandler = async (e) => {
         e.preventDefault();
         console.log('💳 Stripe payment handler triggered');
@@ -314,20 +424,17 @@ const Payment = () => {
                 setPaymentLoading(false);
             } else {
                 if (result.paymentIntent.status === "succeeded") {
-                    const order = {
-                        cart: orderData?.cart || [],
-                        shippingAddress: orderData?.shippingAddress || {},
-                        user: user || {},
-                        totalPrice: orderData?.totalPrice || 0,
-                        subTotalPrice: orderData?.subTotalPrice || 0,
-                        shipping: orderData?.shipping || 0,
-                        discountPrice: orderData?.discountPrice || 0,
-                        paymentInfo: {
-                            id: result.paymentIntent.id,
-                            status: result.paymentIntent.status,
-                            type: "Credit Card",
-                        },
-                    };
+                    // Prepare order object with Stripe payment info
+                    const order = prepareOrderObject({
+                        id: result.paymentIntent.id,
+                        status: result.paymentIntent.status,
+                        type: "Credit Card",
+                    });
+
+                    if (!order) {
+                        setPaymentLoading(false);
+                        return;
+                    }
 
                     console.log("📤 Sending card order:", order);
                     
@@ -364,7 +471,7 @@ const Payment = () => {
         }
     };
 
-    // Cash on Delivery handler
+    // Cash on Delivery handler - FIXED
     const cashOnDeliveryHandler = async (e) => {
         e.preventDefault();
         console.log('💰 COD payment handler triggered');
@@ -380,19 +487,13 @@ const Payment = () => {
 
         const config = createAxiosConfig();
 
-        const order = {
-            cart: orderData?.cart || [],
-            shippingAddress: orderData?.shippingAddress || {},
-            user: user || {},
-            totalPrice: orderData?.totalPrice || 0,
-            subTotalPrice: orderData?.subTotalPrice || 0,
-            shipping: orderData?.shipping || 0,
-            discountPrice: orderData?.discountPrice || 0,
-            paymentInfo: {
-                type: "Cash On Delivery",
-                status: "Pending"
-            },
-        };
+        // Prepare order object with COD payment info
+        const order = prepareOrderObject();
+
+        if (!order) {
+            setPaymentLoading(false);
+            return;
+        }
 
         try {
             console.log("📤 Sending COD order:", order);
@@ -499,12 +600,15 @@ const Payment = () => {
             {/* Debug info (remove in production) */}
             {process.env.NODE_ENV === 'development' && (
                 <div className="mt-8 p-4 bg-gray-100 rounded-lg text-sm">
-                    <p className="font-medium mb-2">Debug Info:</p>
+                    <p className="font-medium mb-2">🔧 Debug Info:</p>
                     <p>User ID: {user?._id || 'No ID'}</p>
                     <p>User Name: {user?.name || 'No Name'}</p>
                     <p>User Authenticated: {user?.isAuthenticated ? '✅ Yes' : '❌ No'}</p>
                     <p>Order Items: {orderData?.cart?.length || 0}</p>
+                    <p>Valid Items: {orderData?.cart?.filter(item => item.shopId).length || 0}</p>
+                    <p>Invalid Items: {orderData?.cart?.filter(item => !item.shopId).length || 0}</p>
                     <p>Total: ${orderData?.totalPrice || 0}</p>
+                    <p>Unique Shops: {[...new Set(orderData?.cart?.map(item => item.shopId).filter(Boolean))].length || 0}</p>
                 </div>
             )}
         </div>

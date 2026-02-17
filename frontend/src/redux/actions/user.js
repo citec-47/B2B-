@@ -1,3 +1,4 @@
+// redux/actions/user.js
 import axios from "axios";
 import { server } from "../../server";
 
@@ -10,15 +11,36 @@ export const loadUser = () => async (dispatch) => {
     const { data } = await axios.get(`${server}/user/getuser`, {
       withCredentials: true,
     });
+    
+    // Check if user is suspended
+    if (data.user?.isSuspended) {
+      dispatch({
+        type: "UserSuspended",
+        payload: { 
+          message: "Your account has been suspended",
+          reason: data.user.suspensionReason 
+        },
+      });
+      return;
+    }
+    
     dispatch({
       type: "LoadUserSuccess",
       payload: data.user,
     });
   } catch (error) {
-    dispatch({
-      type: "LoadUserFail",
-      payload: error.response?.data?.message || error.message,
-    });
+    // Handle suspension error from backend
+    if (error.response?.status === 403 && error.response?.data?.isSuspended) {
+      dispatch({
+        type: "UserSuspended",
+        payload: error.response.data,
+      });
+    } else {
+      dispatch({
+        type: "LoadUserFail",
+        payload: error.response?.data?.message || error.message,
+      });
+    }
   }
 };
 
@@ -31,15 +53,35 @@ export const loadSeller = () => async (dispatch) => {
     const { data } = await axios.get(`${server}/shop/getSeller`, {
       withCredentials: true,
     });
+    
+    // Check if seller is suspended
+    if (data.seller?.isSuspended) {
+      dispatch({
+        type: "SellerSuspended",
+        payload: { 
+          message: "Your seller account has been suspended",
+          reason: data.seller.suspensionReason 
+        },
+      });
+      return;
+    }
+    
     dispatch({
       type: "LoadSellerSuccess",
       payload: data.seller,
     });
   } catch (error) {
-    dispatch({
-      type: "LoadSellerFail",
-      payload: error.response?.data?.message || error.message,
-    });
+    if (error.response?.status === 403 && error.response?.data?.isSuspended) {
+      dispatch({
+        type: "SellerSuspended",
+        payload: error.response.data,
+      });
+    } else {
+      dispatch({
+        type: "LoadSellerFail",
+        payload: error.response?.data?.message || error.message,
+      });
+    }
   }
 };
 
@@ -52,15 +94,35 @@ export const loadAdmin = () => async (dispatch) => {
     const { data } = await axios.get(`${server}/user/getuser`, {
       withCredentials: true,
     });
+    
+    // Check if admin is suspended
+    if (data.user?.isSuspended) {
+      dispatch({
+        type: "AdminSuspended",
+        payload: { 
+          message: "Your admin account has been suspended",
+          reason: data.user.suspensionReason 
+        },
+      });
+      return;
+    }
+    
     dispatch({
       type: "LoadAdminSuccess",
       payload: data.user,
     });
   } catch (error) {
-    dispatch({
-      type: "LoadAdminFail",
-      payload: error.response?.data?.message || error.message,
-    });
+    if (error.response?.status === 403 && error.response?.data?.isSuspended) {
+      dispatch({
+        type: "AdminSuspended",
+        payload: error.response.data,
+      });
+    } else {
+      dispatch({
+        type: "LoadAdminFail",
+        payload: error.response?.data?.message || error.message,
+      });
+    }
   }
 };
 
@@ -75,12 +137,37 @@ export const loginUser = (email, password) => async (dispatch) => {
       { email, password },
       { withCredentials: true }
     );
+    
+    // Check if user is suspended
+    if (data.user?.isSuspended) {
+      dispatch({
+        type: "UserSuspended",
+        payload: { 
+          message: "Your account has been suspended. Please contact support.",
+          reason: data.user.suspensionReason 
+        },
+      });
+      return { success: false, error: "Account suspended", isSuspended: true };
+    }
+    
     dispatch({
       type: "UserLoginSuccess",
       payload: data.user,
     });
     return { success: true, data: data.user };
   } catch (error) {
+    // Check if error is due to suspension
+    if (error.response?.status === 403 && error.response?.data?.isSuspended) {
+      dispatch({
+        type: "UserSuspended",
+        payload: {
+          message: error.response.data.message,
+          reason: error.response.data.suspensionReason
+        },
+      });
+      return { success: false, error: "Account suspended", isSuspended: true };
+    }
+    
     dispatch({
       type: "UserLoginFail",
       payload: error.response?.data?.message || error.message,
@@ -100,12 +187,37 @@ export const loginSeller = (email, password) => async (dispatch) => {
       { email, password },
       { withCredentials: true }
     );
+    
+    // Check if seller is suspended
+    if (data.seller?.isSuspended) {
+      dispatch({
+        type: "SellerSuspended",
+        payload: { 
+          message: "Your seller account has been suspended. Please contact support.",
+          reason: data.seller.suspensionReason 
+        },
+      });
+      return { success: false, error: "Account suspended", isSuspended: true };
+    }
+    
     dispatch({
       type: "SellerLoginSuccess",
       payload: data.seller,
     });
     return { success: true, data: data.seller };
   } catch (error) {
+    // Check if error is due to suspension
+    if (error.response?.status === 403 && error.response?.data?.isSuspended) {
+      dispatch({
+        type: "SellerSuspended",
+        payload: {
+          message: error.response.data.message,
+          reason: error.response.data.suspensionReason
+        },
+      });
+      return { success: false, error: "Account suspended", isSuspended: true };
+    }
+    
     dispatch({
       type: "SellerLoginFail",
       payload: error.response?.data?.message || error.message,
@@ -134,15 +246,35 @@ export const updateUserInformation =
           withCredentials: true,
         }
       );
+      
+      // Check if user is suspended after update
+      if (data.user?.isSuspended) {
+        dispatch({
+          type: "UserSuspended",
+          payload: { 
+            message: "Your account has been suspended",
+            reason: data.user.suspensionReason 
+          },
+        });
+        return;
+      }
+      
       dispatch({
         type: "updateUserInfoSuccess",
         payload: data.user,
       });
     } catch (error) {
-      dispatch({
-        type: "updateUserInfoFailed",
-        payload: error.response?.data?.message || error.message,
-      });
+      if (error.response?.status === 403 && error.response?.data?.isSuspended) {
+        dispatch({
+          type: "UserSuspended",
+          payload: error.response.data,
+        });
+      } else {
+        dispatch({
+          type: "updateUserInfoFailed",
+          payload: error.response?.data?.message || error.message,
+        });
+      }
     }
   };
 
@@ -168,6 +300,18 @@ export const updatUserAddress =
         { withCredentials: true }
       );
 
+      // Check if user is suspended after update
+      if (data.user?.isSuspended) {
+        dispatch({
+          type: "UserSuspended",
+          payload: { 
+            message: "Your account has been suspended",
+            reason: data.user.suspensionReason 
+          },
+        });
+        return;
+      }
+
       dispatch({
         type: "updateUserAddressSuccess",
         payload: {
@@ -176,10 +320,17 @@ export const updatUserAddress =
         },
       });
     } catch (error) {
-      dispatch({
-        type: "updateUserAddressFailed",
-        payload: error.response?.data?.message || error.message,
-      });
+      if (error.response?.status === 403 && error.response?.data?.isSuspended) {
+        dispatch({
+          type: "UserSuspended",
+          payload: error.response.data,
+        });
+      } else {
+        dispatch({
+          type: "updateUserAddressFailed",
+          payload: error.response?.data?.message || error.message,
+        });
+      }
     }
   };
 
@@ -195,6 +346,18 @@ export const deleteUserAddress = (id) => async (dispatch) => {
       { withCredentials: true }
     );
 
+    // Check if user is suspended after delete
+    if (data.user?.isSuspended) {
+      dispatch({
+        type: "UserSuspended",
+        payload: { 
+          message: "Your account has been suspended",
+          reason: data.user.suspensionReason 
+        },
+      });
+      return;
+    }
+
     dispatch({
       type: "deleteUserAddressSuccess",
       payload: {
@@ -203,10 +366,17 @@ export const deleteUserAddress = (id) => async (dispatch) => {
       },
     });
   } catch (error) {
-    dispatch({
-      type: "deleteUserAddressFailed",
-      payload: error.response?.data?.message || error.message,
-    });
+    if (error.response?.status === 403 && error.response?.data?.isSuspended) {
+      dispatch({
+        type: "UserSuspended",
+        payload: error.response.data,
+      });
+    } else {
+      dispatch({
+        type: "deleteUserAddressFailed",
+        payload: error.response?.data?.message || error.message,
+      });
+    }
   }
 };
 
@@ -233,6 +403,66 @@ export const getAllUsers = () => async (dispatch) => {
   }
 };
 
+// Admin: Suspend user
+export const suspendUser = (userId, reason) => async (dispatch) => {
+  try {
+    dispatch({
+      type: "SuspendUserRequest",
+    });
+
+    const { data } = await axios.put(
+      `${server}/admin/suspend-user/${userId}`,
+      { reason },
+      {
+        withCredentials: true,
+      }
+    );
+
+    dispatch({
+      type: "SuspendUserSuccess",
+      payload: { userId, reason, message: data.message },
+    });
+
+    return { success: true };
+  } catch (error) {
+    dispatch({
+      type: "SuspendUserFail",
+      payload: error.response?.data?.message || error.message,
+    });
+    return { success: false, error: error.response?.data?.message };
+  }
+};
+
+// Admin: Unsuspend user
+export const unsuspendUser = (userId) => async (dispatch) => {
+  try {
+    dispatch({
+      type: "UnsuspendUserRequest",
+    });
+
+    const { data } = await axios.put(
+      `${server}/admin/unsuspend-user/${userId}`,
+      {},
+      {
+        withCredentials: true,
+      }
+    );
+
+    dispatch({
+      type: "UnsuspendUserSuccess",
+      payload: { userId, message: data.message },
+    });
+
+    return { success: true };
+  } catch (error) {
+    dispatch({
+      type: "UnsuspendUserFail",
+      payload: error.response?.data?.message || error.message,
+    });
+    return { success: false, error: error.response?.data?.message };
+  }
+};
+
 // Logout all roles
 export const logoutUser = () => async (dispatch) => {
   try {
@@ -240,13 +470,22 @@ export const logoutUser = () => async (dispatch) => {
       withCredentials: true,
     });
     
+    // Clear all tokens
+    localStorage.removeItem('user_token');
+    localStorage.removeItem('seller_token');
+    localStorage.removeItem('admin_token');
+    
     dispatch({
       type: "LogoutSuccess",
     });
   } catch (error) {
+    // Even if API fails, clear local state
+    localStorage.removeItem('user_token');
+    localStorage.removeItem('seller_token');
+    localStorage.removeItem('admin_token');
+    
     dispatch({
-      type: "LogoutFail",
-      payload: error.response?.data?.message || error.message,
+      type: "LogoutSuccess",
     });
   }
 };

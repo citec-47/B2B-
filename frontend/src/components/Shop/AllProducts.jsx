@@ -184,7 +184,7 @@ const AllProducts = () => {
           </div>
           
           <div className="p-4">
-            <div className="mb-4">
+            <div className="mb-4 flex flex-wrap gap-2">
               <Link to="/dashboard-create-product">
                 <Button 
                   variant="contained" 
@@ -192,6 +192,20 @@ const AllProducts = () => {
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   + Add New Product
+                </Button>
+              </Link>
+              
+              {/* Auto-Fetch Button */}
+              <Link to="/dashboard-auto-fetch">
+                <Button 
+                  variant="outlined" 
+                  color="primary"
+                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Auto-Fetch from AliExpress
                 </Button>
               </Link>
             </div>
@@ -202,15 +216,25 @@ const AllProducts = () => {
                 <p className="text-gray-400 mt-2">
                   Start by creating your first product
                 </p>
-                <Link to="/dashboard-create-product">
-                  <Button 
-                    variant="outlined" 
-                    color="primary"
-                    className="mt-4"
-                  >
-                    Create Product
-                  </Button>
-                </Link>
+                <div className="flex justify-center gap-4 mt-4">
+                  <Link to="/dashboard-create-product">
+                    <Button 
+                      variant="outlined" 
+                      color="primary"
+                    >
+                      Create Product
+                    </Button>
+                  </Link>
+                  <Link to="/dashboard-auto-fetch">
+                    <Button 
+                      variant="contained" 
+                      color="primary"
+                      className="bg-gradient-to-r from-purple-600 to-blue-600"
+                    >
+                      Auto-Fetch Products
+                    </Button>
+                  </Link>
+                </div>
               </div>
             ) : (
               <div style={{ height: 500, width: "100%" }}>
