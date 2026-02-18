@@ -1,0 +1,60 @@
+﻿# Overwrite .gitignore with comprehensive rules
+@"
+# Node modules - ignore all
+**/node_modules
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Build folders
+**/build
+build/
+frontend/build/
+backend/build/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+backend/.env
+frontend/.env
+
+# Secret files - THIS IS CRITICAL
+**/*.key
+**/*.key.json
+**/*.pem
+**/*.p12
+**/serviceAccountKey.json
+**/credentials.json
+**/text.txt
+**/secret*.txt
+**/*-key.pem
+
+# Firebase/service account files
+**/*firebase*.json
+**/*service-account*.json
+**/google-credentials*.json
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+activation-logs.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Package lock files (optional - remove if you want to keep them)
+package-lock.json
+yarn.lock
+backend/package-lock.json
+frontend/package-lock.json
+"@ | Out-File -FilePath .gitignore -Encoding utf8
