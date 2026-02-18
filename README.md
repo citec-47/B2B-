@@ -1,7 +1,7 @@
 <div align="center">
       <img width="226" alt="image" src="https://github.com/pattjoshi/Multi_vondor_E_shop/assets/78966839/51c0517e-e5e6-4a65-a520-9e5a52095fb9">
 
-## 🌟 MERN Marketplace * 🌟
+## 🌟 MERN Marketplace 🌟
 
 The MERN Marketplace application will allow users to become sellers, who can manage  shops, and add the products they want to sell in each shop. Admin can control functionality of Seller Users who visit MERN Marketplace will be able to search for and browse products they want to buy, and add products to their shopping cart to place an order. we have 3 Order Method.
 </div>
