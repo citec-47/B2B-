@@ -7,9 +7,8 @@ backend/node_modules/
 frontend/node_modules/
 
 # Build folders
-**/build
-build/
-frontend/build/
+
+
 backend/build/
 
 # Environment files
